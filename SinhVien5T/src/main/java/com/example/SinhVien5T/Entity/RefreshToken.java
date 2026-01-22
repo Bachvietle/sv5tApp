@@ -17,7 +17,7 @@ public class RefreshToken {
     private User user;
 
     @Column(nullable = false, length = 500, unique = true)
-    private String token; // Giữ nguyên tên là token như bạn yêu cầu
+    private String token;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
