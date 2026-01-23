@@ -2,13 +2,5 @@ package com.example.SinhVien5T.Dto.Request;
 
 import lombok.Data;
 
-@Data
-public class UserRegisterRequest {
+@Data public class UserRegisterRequest { private String email; private String userName; private String userPassword; }
 
-    String email;
-
-    String userName;
-
-    String userPassword;
-
-}

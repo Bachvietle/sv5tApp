@@ -1,0 +1,48 @@
+server:
+  port: 8085
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/sinhvien5t?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sonct2k3@gmail.com
+    password: gwjwneccnkzhpmrx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# ================= JWT =================
+jwt:
+  secret: 67dba31c3a967874d92a69240fe1e076eced732e1b0ef221891ae38e4986c57f
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+  issuer: sinhvien5t-system
+  audience: sinhvien5t-client
+
+# ================= SECURITY =================
+security:
+  password:
+    encoder: bcrypt
+    strength: 12
+
+  refresh-token:
+    hash-algorithm: SHA-256
+    salt: sv5t_rt_salt_8f2c9a7e4d1b6a0f3c5e9a2d7b4c1e8f
+
