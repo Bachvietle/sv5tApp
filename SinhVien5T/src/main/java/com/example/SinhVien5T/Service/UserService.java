@@ -5,10 +5,12 @@ import com.example.SinhVien5T.Entity.User;
 import com.example.SinhVien5T.Entity.VerifyToken.RegisterVerifyToken;
 import com.example.SinhVien5T.Repository.RegisterVerifyTokenRepository;
 import com.example.SinhVien5T.Repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -53,4 +55,34 @@ public class UserService {
         emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
 
     }
-}
+
+    public void verifyRegisterToken(String token, HttpServletResponse response) throws RuntimeException, IOException {
+
+        try {
+            RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
+                    .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+
+            if (registerVerifyToken.getExpiryDate().isBefore(LocalDateTime.now())){
+
+                registerVerifyTokenRepository.delete(registerVerifyToken);
+
+                response.sendRedirect("http://localhost:5173/login?error=token_expired");
+                return;
+            }
+
+            // Link đc xác minh thành công, save isActive User rồi redirect về trong login
+            User user = registerVerifyToken.getUser();
+            user.setActive(true);
+            userRepository.save(user);
+
+            registerVerifyTokenRepository.delete(registerVerifyToken);
+
+            response.sendRedirect("http://localhost:5173/login?verified=success");
+
+        } catch (Exception e) {
+            // Trường hợp lỗi khác (token rác, không tìm thấy...)
+            response.sendRedirect("http://localhost:5173/login?error=invalid_token");
+        }
+        }
+    }
+
