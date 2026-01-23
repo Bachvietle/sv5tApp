@@ -1,4 +1,4 @@
-package com.example.SinhVien5T.Entity;
+package com.example.SinhVien5T.Entity.Enum;
 
 public enum Gender {
     MALE,

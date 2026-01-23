@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 @Table(name = "classes")
 @Data
 
-public class ClassEntity {
+public class Classes {
+
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "cl_code", nullable = false, length = 50)
     private String clCode;

@@ -1,5 +1,7 @@
 package com.example.SinhVien5T.Entity;
 
+import com.example.SinhVien5T.Entity.Enum.Gender;
+import com.example.SinhVien5T.Entity.Enum.Role;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +16,10 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class User {
+
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "user_name", nullable = false, unique = true, length = 100)
     private String userName;
@@ -24,7 +28,7 @@ public class User {
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+    private String userPassword;
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
@@ -55,13 +59,13 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
-    private ClassEntity clazz;
+    private Classes clazz;
 
     @Column(name = "student_code", length = 50)
     private String studentCode;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
+    private boolean isActive;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp

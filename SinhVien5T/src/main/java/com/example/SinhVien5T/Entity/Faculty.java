@@ -1,9 +1,6 @@
 package com.example.SinhVien5T.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -17,7 +14,8 @@ import java.time.LocalDateTime;
 public class Faculty {
 
         @Id
-        private String id;
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
         @Column(name = "fa_code", nullable = false, unique = true, length = 20)
         private String faCode;

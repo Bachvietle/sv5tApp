@@ -1,4 +1,4 @@
-package com.example.SinhVien5T.Entity;
+package com.example.SinhVien5T.Entity.VerifyToken;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

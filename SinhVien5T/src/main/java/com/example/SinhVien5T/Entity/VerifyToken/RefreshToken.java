@@ -1,6 +1,8 @@
-package com.example.SinhVien5T.Entity;
+package com.example.SinhVien5T.Entity.VerifyToken;
 
+import com.example.SinhVien5T.Entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "refresh_tokens")
 @Data
+@Builder
 public class RefreshToken {
     @Id
     private String id;
@@ -23,6 +26,7 @@ public class RefreshToken {
     private LocalDateTime expiredAt;
 
     @Column(name = "is_revoked")
+    @Builder.Default
     private Boolean isRevoked = false;
 
     @Column(name = "ip_address", length = 45)
