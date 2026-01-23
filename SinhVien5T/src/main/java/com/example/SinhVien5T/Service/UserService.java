@@ -8,10 +8,12 @@ import com.example.SinhVien5T.Repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,38 +23,46 @@ public class UserService {
     private final UserRepository userRepository;
     private final RegisterVerifyTokenRepository registerVerifyTokenRepository;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     public void register(UserRegisterRequest request) throws Exception {
 
-        if(userRepository.existsByEmail(request.getEmail())){
-            throw new Exception("Email đã được đăng kí");
+        Optional<User> existUser = userRepository.findByEmail(request.getEmail());
+
+        if (existUser.isPresent() && existUser.get().isVerified()) {
+            throw new RuntimeException("Email đã được đăng kí");
         }
 
-        // Tạo user mới với isActive = false
-        User user = User.builder()
-                .email(request.getEmail())
-                .userName(request.getUserName())
-                .userPassword(request.getUserPassword())
-                .isActive(false)
-                .build();
+        User user = existUser.orElseGet(() ->
+                User.builder()
+                        .email(request.getEmail())
+                        .build()
+                );
 
-        // Lưu vào db
-        userRepository.save(user);
+        user.setUserName(request.getUserName());
+        user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));
+        user.setVerified(false);
 
-        // Tạo link verify
-        String token = UUID.randomUUID().toString();
+            // Xóa tất cả token cũ trước đó
+            registerVerifyTokenRepository.deleteByUser(user);
 
-        RegisterVerifyToken registerVerifyToken = RegisterVerifyToken.builder()
-                .token(token)
-                .user(user)
-                .expiryDate(LocalDateTime.now().plusMinutes(10))
-                .build();
+            // Lưu vào db
+            userRepository.save(user);
 
-        registerVerifyTokenRepository.save(registerVerifyToken);
+            // Tạo link verify
+            String token = UUID.randomUUID().toString();
 
-        String verifyLink = "http://localhost:8080/user/verify_register_token?token=" + token;
+            RegisterVerifyToken registerVerifyToken = RegisterVerifyToken.builder()
+                    .token(token)
+                    .user(user)
+                    .expiryDate(LocalDateTime.now().plusMinutes(10))
+                    .build();
 
-        emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
+            registerVerifyTokenRepository.save(registerVerifyToken);
+
+            String verifyLink = "http://localhost:8080/user/verify_register_token?token=" + token;
+
+            emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
 
     }
 
@@ -66,22 +76,22 @@ public class UserService {
 
                 registerVerifyTokenRepository.delete(registerVerifyToken);
 
-                response.sendRedirect("http://localhost:5173/login?error=token_expired");
+                response.sendRedirect("http://localhost:8000/login?error=token_expired");
                 return;
             }
 
             // Link đc xác minh thành công, save isActive User rồi redirect về trong login
             User user = registerVerifyToken.getUser();
-            user.setActive(true);
+            user.setVerified(true);
             userRepository.save(user);
 
             registerVerifyTokenRepository.delete(registerVerifyToken);
 
-            response.sendRedirect("http://localhost:5173/login?verified=success");
+            response.sendRedirect("http://localhost:8000/login?verified=success");
 
         } catch (Exception e) {
             // Trường hợp lỗi khác (token rác, không tìm thấy...)
-            response.sendRedirect("http://localhost:5173/login?error=invalid_token");
+            response.sendRedirect("http://localhost:8000/login?error=invalid_token");
         }
         }
     }

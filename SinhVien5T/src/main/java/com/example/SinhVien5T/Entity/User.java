@@ -65,7 +65,11 @@ public class User {
     private String studentCode;
 
     @Column(name = "is_active")
-    private boolean isActive;
+    private boolean isVerified;
+
+    @Column(name = "is_active")
+    @Builder.Default
+    private boolean isActive = true;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
