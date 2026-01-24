@@ -8,6 +8,9 @@ import com.example.SinhVien5T.Repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService{
 
     private final UserRepository userRepository;
     private final RegisterVerifyTokenRepository registerVerifyTokenRepository;
@@ -43,11 +46,11 @@ public class UserService {
         user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));
         user.setVerified(false);
 
+        // Lưu vào db
+        userRepository.save(user);
+
             // Xóa tất cả token cũ trước đó
             registerVerifyTokenRepository.deleteByUser(user);
-
-            // Lưu vào db
-            userRepository.save(user);
 
             // Tạo link verify
             String token = UUID.randomUUID().toString();
@@ -94,5 +97,10 @@ public class UserService {
             response.sendRedirect("http://localhost:8000/login?error=invalid_token");
         }
         }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return null;
     }
+}
 

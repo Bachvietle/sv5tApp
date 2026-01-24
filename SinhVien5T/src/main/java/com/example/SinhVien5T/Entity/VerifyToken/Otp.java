@@ -19,7 +19,7 @@ public class Otp {
     private String email;
 
     @Column(name = "otp_hash", nullable = false, length = 255)
-    private String otpHash;
+    private String otp;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;

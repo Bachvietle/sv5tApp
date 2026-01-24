@@ -4,6 +4,7 @@ import com.example.SinhVien5T.Entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -35,6 +36,7 @@ public class RefreshToken {
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }

@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/user/auth")
 @RequiredArgsConstructor
-public class UserController {
+public class UserAuthController {
 
     private final UserService userService;
 
