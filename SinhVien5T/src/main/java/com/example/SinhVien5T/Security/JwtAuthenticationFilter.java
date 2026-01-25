@@ -1,6 +1,5 @@
-package com.example.SinhVien5T.Config;
+package com.example.SinhVien5T.Security;
 
-import com.example.SinhVien5T.Service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

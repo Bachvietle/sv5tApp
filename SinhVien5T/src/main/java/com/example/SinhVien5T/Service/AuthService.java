@@ -1,12 +1,16 @@
 package com.example.SinhVien5T.Service;
 
 import com.example.SinhVien5T.Dto.Request.UserLoginRequest;
+import com.example.SinhVien5T.Dto.Request.UserRegisterRequest;
 import com.example.SinhVien5T.Entity.User;
 import com.example.SinhVien5T.Entity.VerifyToken.Otp;
 import com.example.SinhVien5T.Entity.VerifyToken.RefreshToken;
+import com.example.SinhVien5T.Entity.VerifyToken.RegisterVerifyToken;
 import com.example.SinhVien5T.Repository.OtpRepository;
 import com.example.SinhVien5T.Repository.RefreshTokenRepository;
+import com.example.SinhVien5T.Repository.RegisterVerifyTokenRepository;
 import com.example.SinhVien5T.Repository.UserRepository;
+import com.example.SinhVien5T.Security.JwtService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,12 +23,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +41,79 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RegisterVerifyTokenRepository registerVerifyTokenRepository;
+
+
+    public void register(UserRegisterRequest request) throws Exception {
+
+        Optional<User> existUser = userRepository.findByEmail(request.getEmail());
+
+        if (existUser.isPresent() && existUser.get().isVerified()) {
+            throw new RuntimeException("Email đã được đăng kí");
+        }
+
+        User user = existUser.orElseGet(() ->
+                User.builder()
+                        .email(request.getEmail())
+                        .build()
+        );
+
+        user.setUserName(request.getUserName());
+        user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));
+        user.setVerified(false);
+
+        // Lưu vào db
+        userRepository.save(user);
+
+        // Xóa tất cả token cũ trước đó
+        registerVerifyTokenRepository.deleteByUser(user);
+
+        // Tạo link verify
+        String token = UUID.randomUUID().toString();
+
+        RegisterVerifyToken registerVerifyToken = RegisterVerifyToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusMinutes(10))
+                .build();
+
+        registerVerifyTokenRepository.save(registerVerifyToken);
+
+        String verifyLink = "http://localhost:8080/user/verify_register_token?token=" + token;
+
+        emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
+
+    }
+
+    public void verifyRegisterToken(String token, HttpServletResponse response) throws RuntimeException, IOException {
+
+        try {
+            RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
+                    .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+
+            if (registerVerifyToken.getExpiryDate().isBefore(LocalDateTime.now())){
+
+                registerVerifyTokenRepository.delete(registerVerifyToken);
+
+                response.sendRedirect("http://localhost:8000/login?error=token_expired");
+                return;
+            }
+
+            // Link đc xác minh thành công, save isActive User rồi redirect về trong login
+            User user = registerVerifyToken.getUser();
+            user.setVerified(true);
+            userRepository.save(user);
+
+            registerVerifyTokenRepository.delete(registerVerifyToken);
+
+            response.sendRedirect("http://localhost:8000/login?verified=success");
+
+        } catch (Exception e) {
+            // Trường hợp lỗi khác (token rác, không tìm thấy...)
+            response.sendRedirect("http://localhost:8000/login?error=invalid_token");
+        }
+    }
 
     public void login(UserLoginRequest userLoginRequest) throws MessagingException {
 
@@ -71,6 +149,7 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public Map<String, Object> verifyOtpLogin(String otp, HttpServletRequest request, HttpServletResponse response){
         Otp checkOtp = otpRepository.findByOtp(otp).orElseThrow(
                 () -> new RuntimeException("Otp không hợp lệ hoặc đã hết hạn")
@@ -96,16 +175,7 @@ public class AuthService {
         accessToken đuợc đưa lên controller rồi trả về trong Body reponse
          */
 
-        // Tạo cookie để cho refreshToken vào
-        ResponseCookie cookie = ResponseCookie.from(refreshToken)
-                .httpOnly(true) // Cookie sẽ không thể bị truy cập bởi JavaScript thông qua document.cookie secure
-                .secure(false) // để tạm dùng trong MT dev (chạy local dùng http)
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Strict") // để tạm dùng trong MT dev
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
 
         // Lưu refreshToken vào db
         RefreshToken rt = RefreshToken.builder()
@@ -132,4 +202,70 @@ public class AuthService {
     }
 
     public void loginGoogle(){}
+
+    public void logOut(HttpServletRequest request, HttpServletResponse response){
+
+        String refreshToken = getValueCookie("refreshToken", request);
+
+        if(refreshToken != null){
+            refreshTokenRepository.deleteByToken(refreshToken);
+        }
+
+        // Xóa cookie trong trình duyệt
+        addRefreshCookie(null, 0, response);
+    }
+
+    public Map<String, Object> refreshAccessToken(HttpServletRequest request){
+
+        String refreshToken = getValueCookie("refreshToken", request);
+
+        RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(refreshToken)
+                .filter(rt -> rt.getExpiredAt().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new RuntimeException("Token ko hợp lệ"));
+
+        String newAccessToken = jwtService.generateAccessJwt(storedRefreshToken.getUser());
+
+        return Map.of("accessToken", newAccessToken);
+    }
+
+
+
+    /*
+    .......................................................................
+     Các hàm Helper
+     */
+
+    // add RefreshToken to Cookie
+    public void addRefreshCookie(String refreshToken, int maxAge, HttpServletResponse response) {
+
+        // Tạo cookie để cho refreshToken vào
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true) // Cookie sẽ không thể bị truy cập bởi JavaScript thông qua document.cookie secure
+                .secure(false) // để tạm dùng trong MT dev (chạy local dùng http)
+                .path("/")
+                .maxAge(maxAge)
+                .sameSite("Strict") // để tạm dùng trong MT dev
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+
+    /*
+     Hàm này để lấy giá trị của name từ cookie.
+
+     (Ở đây sẽ dùng để lấy gtri của refreshToken)
+     */
+    public String getValueCookie(String name, HttpServletRequest request){
+
+        if(request.getCookies() == null){
+            return null;
+        }
+
+        return Arrays.stream(request.getCookies()) // Gtri trả về là 1 Array
+                .filter(c -> name.equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst().orElse(null);
+
+    }
 }

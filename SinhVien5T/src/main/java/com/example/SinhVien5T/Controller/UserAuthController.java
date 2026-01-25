@@ -27,7 +27,7 @@ public class UserAuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> register(@RequestBody UserRegisterRequest request) throws Exception {
 
-        userService.register(request);
+        authService.register(request);
 
         ApiResponse apiResponse = ApiResponse.success("Đăng kí thành công", null);
 
@@ -36,7 +36,7 @@ public class UserAuthController {
 
     @PostMapping("/verify_register_token")
     public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
-        userService.verifyRegisterToken(token, response);
+        authService.verifyRegisterToken(token, response);
     }
 
     @PostMapping("/login")
@@ -54,6 +54,25 @@ public class UserAuthController {
         Map<String, Object> body = authService.verifyOtpLogin(otp, request, response);
 
         ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thành công", body);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/log_out")
+    public ResponseEntity<ApiResponse> logOut(HttpServletRequest request, HttpServletResponse response){
+        authService.logOut(request, response);
+
+        ApiResponse apiResponse = ApiResponse.success("", null);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/refresh_access_token")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> refreshAccessToken(HttpServletRequest request){
+        Map<String, Object> body = authService.refreshAccessToken(request);
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Refresh access token thành công", body);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

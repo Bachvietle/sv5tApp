@@ -1,4 +1,4 @@
-package com.example.SinhVien5T.Service;
+package com.example.SinhVien5T.Security;
 
 import com.example.SinhVien5T.Entity.User;
 import com.example.SinhVien5T.Entity.VerifyToken.RefreshToken;
