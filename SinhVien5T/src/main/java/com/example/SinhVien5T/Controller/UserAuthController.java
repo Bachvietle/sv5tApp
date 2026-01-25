@@ -1,8 +1,12 @@
 package com.example.SinhVien5T.Controller;
 
+import com.example.SinhVien5T.Dto.Request.UserLoginRequest;
 import com.example.SinhVien5T.Dto.Request.UserRegisterRequest;
 import com.example.SinhVien5T.Dto.Response.ApiResponse;
+import com.example.SinhVien5T.Service.AuthService;
 import com.example.SinhVien5T.Service.UserService;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user/auth")
@@ -17,6 +22,7 @@ import java.io.IOException;
 public class UserAuthController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> register(@RequestBody UserRegisterRequest request) throws Exception {
@@ -31,5 +37,24 @@ public class UserAuthController {
     @PostMapping("/verify_register_token")
     public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
         userService.verifyRegisterToken(token, response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> login(@RequestBody UserLoginRequest request) throws MessagingException {
+
+        authService.login(request);
+
+        ApiResponse apiResponse = ApiResponse.success("Otp xác minh đã được gửi đến email của bạn", null);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/verify_otp_login")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyOtpLogin(@RequestParam String otp, HttpServletRequest request, HttpServletResponse response){
+        Map<String, Object> body = authService.verifyOtpLogin(otp, request, response);
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thành công", body);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

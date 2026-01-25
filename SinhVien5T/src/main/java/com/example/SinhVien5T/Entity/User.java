@@ -91,6 +91,10 @@ public class User implements UserDetails {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    public String getUserName() {
+        return this.userName;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("role:" + this.role.name()));
