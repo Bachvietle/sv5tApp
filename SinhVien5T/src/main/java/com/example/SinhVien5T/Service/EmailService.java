@@ -63,4 +63,23 @@ public class EmailService {
             throw new MessagingException("Ko gửi được email OTP");
         }
     }
+
+    public void sendResetPwMail(String resetPwLink, String userMail) throws MessagingException {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+
+            MimeMessageHelper textSend = new MimeMessageHelper(message, true); // cho phép multipart
+
+            textSend.setTo(userMail);
+            textSend.setSubject("Đặt lại mật khẩu");
+            textSend.setText("<p> Chào bạn,</p>" +
+                    "<p> Vui lòng nhấn link sau đây để đặt lại mật khẩu:" +
+                    "<a href=\"" + resetPwLink + "\">Đặt lại mật khẩu</a>", true
+            );
+
+            mailSender.send(message);
+        } catch (MessagingException e){
+            throw new MessagingException("Ko gửi được link xác minh");
+        }
+    }
 }

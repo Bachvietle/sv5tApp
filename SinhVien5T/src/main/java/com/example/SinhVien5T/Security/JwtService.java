@@ -24,13 +24,11 @@ public class JwtService {
     private final SecretKey jwtSecretKey;
     private final long accessExpiration;
     private final long refreshExpiration;
-    public RefreshTokenRepository refreshTokenRepository;
 
     public JwtService(
             @Value("${app.jwt.secret}") String secretKey,
             @Value("${app.jwt.access-expiration}") long accessExpiration,
-            @Value("${app.jwt.refresh-expiration}") long refreshExpiration,
-            RefreshTokenRepository refreshTokenRepository
+            @Value("${app.jwt.refresh-expiration}") long refreshExpiration
     ){
         // secretKey lưu dưới dạng BASE64 nên cần decode
         byte [] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -38,7 +36,6 @@ public class JwtService {
 
         this.accessExpiration = accessExpiration;
         this.refreshExpiration = refreshExpiration;
-        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     public Claims extraAllClaims(String token){
@@ -69,7 +66,7 @@ public class JwtService {
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessExpiration))
-                .claim("role", user.getRole())
+                .claim("role", user.getRole().toString())
                 .signWith(jwtSecretKey)
                 .compact();
     }
@@ -84,20 +81,9 @@ public class JwtService {
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .claim("role", user.getRole())
+                .claim("role", user.getRole().toString())
                 .claim("ip", ipAddress)
                 .compact();
-
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .id(UUID.randomUUID().toString())
-                        .user(user)
-                        .token(refreshToken)
-                        .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(refreshExpiration)))
-                        .ipAddress(ipAddress)
-                        .userAgent(userAgent)
-                        .build()
-        );
 
         return refreshToken;
     }

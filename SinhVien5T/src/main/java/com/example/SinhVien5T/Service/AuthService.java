@@ -163,10 +163,10 @@ public class AuthService {
                 () -> new RuntimeException("Ko tìm thấy email")
         );
 
-        // Xóa otp ngay khi xác thực xong
+        // 1. Xóa otp ngay khi xác thực xong
         otpRepository.delete(checkOtp);
 
-        // Sau khi xác thực otp thành công, tạo token và cho user login
+        // 2. Sau khi xác thực otp thành công, tạo token và cho user login
         String accessToken = jwtService.generateAccessJwt(user);
         String refreshToken = jwtService.generateRefreshJwt(user, request);
 
@@ -175,9 +175,10 @@ public class AuthService {
         accessToken đuợc đưa lên controller rồi trả về trong Body reponse
          */
 
+        // 3. add refresh to Cookie
         addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
 
-        // Lưu refreshToken vào db
+        // 4. Lưu refreshToken vào db
         RefreshToken rt = RefreshToken.builder()
                 .id(UUID.randomUUID().toString())
                 .token(refreshToken)
@@ -189,19 +190,18 @@ public class AuthService {
 
         refreshTokenRepository.save(rt);
 
-        // Trả accessToken về body reponse
+        // 5. Trả accessToken về body reponse
         Map<String, Object> body = new HashMap<>();
-
         body.put("accessToken", accessToken);
         body.put("user", Map.of(
+                "id", user.getId(), // Nên trả về ID để Frontend dùng
                 "email", user.getEmail(),
-                "userName", user.getUserName()
+                "userName", user.getUserName(),
+                "role", user.getRole()
         ));
 
         return body;
     }
-
-    public void loginGoogle(){}
 
     public void logOut(HttpServletRequest request, HttpServletResponse response){
 
@@ -213,6 +213,43 @@ public class AuthService {
 
         // Xóa cookie trong trình duyệt
         addRefreshCookie(null, 0, response);
+    }
+
+    public void missingPassWord(String email) throws MessagingException {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("Tài khoản không tồn tại")
+        );
+
+        String token = UUID.randomUUID().toString();
+
+        RegisterVerifyToken resetToken = RegisterVerifyToken.builder()
+                .user(user)
+                .token(token)
+                .expiryDate(LocalDateTime.now().plusMinutes(10))
+                .build();
+
+        registerVerifyTokenRepository.save(resetToken);
+
+        String resetPwLink = "http://localhost:8000/user/auth/reset_password?token=" + token;
+
+        emailService.sendResetPwMail(resetPwLink, email);
+    }
+
+    @Transactional
+    public void resetPassWord(String token, String newPw) throws MessagingException {
+        RegisterVerifyToken resetToken = registerVerifyTokenRepository.findByToken(token)
+                        .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+
+        if(resetToken.getExpiryDate().isBefore(LocalDateTime.now())){
+            registerVerifyTokenRepository.delete(resetToken);
+            throw new RuntimeException("Token không hợp lệ");
+        }
+
+       registerVerifyTokenRepository.delete(resetToken);
+
+        User user = resetToken.getUser();
+        user.setUserPassword(passwordEncoder.encode(newPw));
+        userRepository.save(user);
     }
 
     public Map<String, Object> refreshAccessToken(HttpServletRequest request){

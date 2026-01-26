@@ -70,7 +70,7 @@ public class User implements UserDetails {
     @Column(name = "student_code", length = 50)
     private String studentCode;
 
-    @Column(name = "is_active")
+    @Column(name = "is_verified")
     private boolean isVerified;
 
     @Column(name = "is_active")

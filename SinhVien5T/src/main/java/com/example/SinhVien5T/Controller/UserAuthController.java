@@ -34,7 +34,7 @@ public class UserAuthController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/verify_register_token")
+    @GetMapping("/verify_register_token")
     public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
         authService.verifyRegisterToken(token, response);
     }
@@ -73,6 +73,21 @@ public class UserAuthController {
         Map<String, Object> body = authService.refreshAccessToken(request);
 
         ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Refresh access token thành công", body);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/missing_password")
+    public void missingPassWord(String email) throws MessagingException {
+        authService.missingPassWord(email);
+    }
+
+    @PostMapping("/reset_password")
+    public ResponseEntity<ApiResponse<String>> resetPassWord(@RequestParam String token, @RequestParam String newPw) throws MessagingException {
+
+        authService.resetPassWord(token, newPw);
+
+        ApiResponse apiResponse = ApiResponse.success("", null);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
