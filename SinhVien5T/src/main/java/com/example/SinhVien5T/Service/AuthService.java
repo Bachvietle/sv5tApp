@@ -6,6 +6,8 @@ import com.example.SinhVien5T.Entity.User;
 import com.example.SinhVien5T.Entity.VerifyToken.Otp;
 import com.example.SinhVien5T.Entity.VerifyToken.RefreshToken;
 import com.example.SinhVien5T.Entity.VerifyToken.RegisterVerifyToken;
+import com.example.SinhVien5T.Exception.EmailExistException;
+import com.example.SinhVien5T.Exception.InvalidOtpException;
 import com.example.SinhVien5T.Repository.OtpRepository;
 import com.example.SinhVien5T.Repository.RefreshTokenRepository;
 import com.example.SinhVien5T.Repository.RegisterVerifyTokenRepository;
@@ -50,7 +52,7 @@ public class AuthService {
         Optional<User> existUser = userRepository.findByEmail(request.getEmail());
 
         if (existUser.isPresent() && existUser.get().isVerified()) {
-            throw new RuntimeException("Email đã được đăng kí");
+            throw new EmailExistException("Email đã được đăng kí");
         }
 
         User user = existUser.orElseGet(() ->
@@ -140,9 +142,6 @@ public class AuthService {
 
             emailService.sendVerifyLoginMail(otp, user.getEmail());
 
-        } catch (DisabledException e){
-            // Ném tiếp để GlobalHandler bắt (trả về 403)
-            throw e;
         } catch (BadCredentialsException e){
             // Ném tiếp để GlobalHandler bắt (trả về 401)
             throw e;
@@ -152,15 +151,15 @@ public class AuthService {
     @Transactional
     public Map<String, Object> verifyOtpLogin(String otp, HttpServletRequest request, HttpServletResponse response){
         Otp checkOtp = otpRepository.findByOtp(otp).orElseThrow(
-                () -> new RuntimeException("Otp không hợp lệ hoặc đã hết hạn")
+                () -> new InvalidOtpException("Otp không hợp lệ hoặc đã hết hạn")
         );
 
         if(checkOtp.getExpiredAt().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Otp không hợp lệ hoặc đã hết hạn");
+            throw new InvalidOtpException("Otp không hợp lệ hoặc đã hết hạn");
         }
 
         User user = userRepository.findByEmail(checkOtp.getEmail()).orElseThrow(
-                () -> new RuntimeException("Ko tìm thấy email")
+                () -> new EmailExistException("Ko tìm thấy email")
         );
 
         // 1. Xóa otp ngay khi xác thực xong
@@ -217,7 +216,7 @@ public class AuthService {
 
     public void missingPassWord(String email) throws MessagingException {
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new RuntimeException("Tài khoản không tồn tại")
+                () -> new EmailExistException("Tài khoản không tồn tại")
         );
 
         String token = UUID.randomUUID().toString();
