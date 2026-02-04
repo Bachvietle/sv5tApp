@@ -17,7 +17,9 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +30,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -46,13 +50,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RegisterVerifyTokenRepository registerVerifyTokenRepository;
 
+    @Value("${app.auth.frontendUrl}")
+    private String frontEndUrl;
 
-    public void register(UserRegisterRequest request) throws Exception {
+
+    public void register(@RequestBody UserRegisterRequest request) throws Exception {
 
         Optional<User> existUser = userRepository.findByEmail(request.getEmail());
 
         if (existUser.isPresent() && existUser.get().isVerified()) {
             throw new EmailExistException("Email đã được đăng kí");
+        }
+
+
+        if(!request.getEmail().toLowerCase().endsWith("@ms.hanu.edu.vn")){
+            throw new RuntimeException("Vui lòng sử dụng email nhà trường cấp (@ms.hanu.edu.vn)");
         }
 
         User user = existUser.orElseGet(() ->
@@ -82,13 +94,13 @@ public class AuthService {
 
         registerVerifyTokenRepository.save(registerVerifyToken);
 
-        String verifyLink = "http://localhost:8080/user/verify_register_token?token=" + token;
+        String verifyLink = "http://localhost:8080/user/auth/verify_register_token?token=" + token; // BE handle endpoint nay (ko phai viet FE)
 
         emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
 
     }
 
-    public void verifyRegisterToken(String token, HttpServletResponse response) throws RuntimeException, IOException {
+    public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws RuntimeException, IOException {
 
         try {
             RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
@@ -98,7 +110,7 @@ public class AuthService {
 
                 registerVerifyTokenRepository.delete(registerVerifyToken);
 
-                response.sendRedirect("http://localhost:8000/login?error=token_expired");
+                response.sendRedirect( frontEndUrl + "/login?error=token_expired");
                 return;
             }
 
@@ -109,15 +121,15 @@ public class AuthService {
 
             registerVerifyTokenRepository.delete(registerVerifyToken);
 
-            response.sendRedirect("http://localhost:8000/login?verified=success");
+            response.sendRedirect(frontEndUrl + "/login?verified=success");
 
         } catch (Exception e) {
             // Trường hợp lỗi khác (token rác, không tìm thấy...)
-            response.sendRedirect("http://localhost:8000/login?error=invalid_token");
+            response.sendRedirect(frontEndUrl + "/login?error=invalid_token");
         }
     }
 
-    public void login(UserLoginRequest userLoginRequest) throws MessagingException {
+    public void login(@RequestBody UserLoginRequest userLoginRequest) throws MessagingException {
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 userLoginRequest.getEmail(), userLoginRequest.getUserPassword()
@@ -149,7 +161,7 @@ public class AuthService {
     }
 
     @Transactional
-    public Map<String, Object> verifyOtpLogin(String otp, HttpServletRequest request, HttpServletResponse response){
+    public Map<String, Object> verifyOtpLogin(@RequestParam String otp, HttpServletRequest request, HttpServletResponse response){
         Otp checkOtp = otpRepository.findByOtp(otp).orElseThrow(
                 () -> new InvalidOtpException("Otp không hợp lệ hoặc đã hết hạn")
         );
@@ -229,9 +241,33 @@ public class AuthService {
 
         registerVerifyTokenRepository.save(resetToken);
 
-        String resetPwLink = "http://localhost:8000/user/auth/reset_password?token=" + token;
+        String resetPwLink = frontEndUrl + "/reset_password?token=" + token;
 
         emailService.sendResetPwMail(resetPwLink, email);
+    }
+
+    public boolean verifyResetPwToken(@RequestParam String token) throws RuntimeException, IOException {
+
+        try {
+            RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
+                    .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+
+            if (registerVerifyToken.getExpiryDate().isBefore(LocalDateTime.now())){
+
+                registerVerifyTokenRepository.delete(registerVerifyToken);
+
+                return false;
+            }
+
+
+            registerVerifyTokenRepository.delete(registerVerifyToken);
+
+            return true;
+
+        } catch (Exception e) {
+            // Trường hợp lỗi khác (token rác, không tìm thấy...)
+            return false;
+        }
     }
 
     @Transactional

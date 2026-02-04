@@ -18,6 +18,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Stri
 
     @Modifying
     @Transactional
-    void deleteByExpiryDateBefore(LocalDateTime now);
+    void deleteByExpiredAtBefore(LocalDateTime now);
 
 }

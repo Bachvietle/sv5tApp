@@ -16,6 +16,6 @@ public class TokenCleanupAuto {
 
     @Scheduled(cron = "0 0 3 * * ?") // Chạy vào 3 giờ sáng mỗi ngày
     public void cleanExpiredTokens() {
-        refreshTokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
+        refreshTokenRepository.deleteByExpiredAtBefore(LocalDateTime.now());
     }
 }

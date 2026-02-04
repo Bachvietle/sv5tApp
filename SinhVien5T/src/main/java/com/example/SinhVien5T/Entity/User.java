@@ -3,8 +3,10 @@ package com.example.SinhVien5T.Entity;
 import com.example.SinhVien5T.Entity.Enum.Gender;
 import com.example.SinhVien5T.Entity.Enum.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,6 +23,8 @@ import java.util.List;
 @Table(name = "users")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User implements UserDetails {
 
     @Id
@@ -36,11 +40,12 @@ public class User implements UserDetails {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String userPassword;
 
-    @Column(name = "full_name", nullable = false, length = 100)
+    @Column(name = "full_name", length = 100)
     private String fullName;
 
     @Column(name = "role")
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
     private String avatar;

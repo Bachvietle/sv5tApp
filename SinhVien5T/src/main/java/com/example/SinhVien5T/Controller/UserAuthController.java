@@ -2,6 +2,7 @@ package com.example.SinhVien5T.Controller;
 
 import com.example.SinhVien5T.Dto.Request.UserLoginRequest;
 import com.example.SinhVien5T.Dto.Request.UserRegisterRequest;
+import com.example.SinhVien5T.Dto.Request.UserResetPwRequest;
 import com.example.SinhVien5T.Dto.Response.ApiResponse;
 import com.example.SinhVien5T.Service.AuthService;
 import com.example.SinhVien5T.Service.UserService;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user/auth")
 @RequiredArgsConstructor
+
 public class UserAuthController {
 
     private final UserService userService;
@@ -35,8 +37,12 @@ public class UserAuthController {
     }
 
     @GetMapping("/verify_register_token")
-    public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
+    public ResponseEntity<ApiResponse> verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
         authService.verifyRegisterToken(token, response);
+
+        ApiResponse apiResponse = ApiResponse.success("Xác minh thành công", null);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PostMapping("/login")
@@ -78,16 +84,29 @@ public class UserAuthController {
     }
 
     @PostMapping("/missing_password")
-    public void missingPassWord(String email) throws MessagingException {
+    public void missingPassWord(@RequestParam String email) throws MessagingException {
         authService.missingPassWord(email);
     }
 
+    @GetMapping("/verify_reset_token")
+    public ResponseEntity<ApiResponse> checkResetToken(@RequestParam String token) throws IOException {
+        // Logic: Chỉ check xem token có tồn tại và còn hạn không
+        boolean isValid = authService.verifyResetPwToken(token);
+
+        if (isValid) {
+            return ResponseEntity.ok(ApiResponse.success("Token hợp lệ", null));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Token hết hạn hoặc không tồn tại"));
+        }
+    }
+
     @PostMapping("/reset_password")
-    public ResponseEntity<ApiResponse<String>> resetPassWord(@RequestParam String token, @RequestParam String newPw) throws MessagingException {
+    public ResponseEntity<ApiResponse<String>> resetPassWord(@RequestBody UserResetPwRequest request) throws MessagingException {
 
-        authService.resetPassWord(token, newPw);
+        authService.resetPassWord(request.getToken(), request.getNewPw());
 
-        ApiResponse apiResponse = ApiResponse.success("", null);
+        ApiResponse apiResponse = ApiResponse.success("Đổi mật khẩu thành công", null);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
