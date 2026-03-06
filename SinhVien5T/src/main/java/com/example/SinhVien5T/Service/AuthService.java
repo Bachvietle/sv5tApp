@@ -129,89 +129,60 @@ public class AuthService {
         }
     }
 
-    public void login(@RequestBody UserLoginRequest userLoginRequest) throws MessagingException {
+    public Map<String, Object> login(UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse response) throws MessagingException {
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 userLoginRequest.getEmail(), userLoginRequest.getUserPassword()
         );
 
         try{
+
+            // 1. Xác minh user
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
             User user = (User) authentication.getPrincipal();
 
-            // Tạo otp với 6 chữ số
-            String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
 
-            Otp newOtp = Otp.builder()
-                    .id(UUID.randomUUID().toString())
-                    .email(user.getEmail())
-                    .otp(otp)
-                    .expiredAt(LocalDateTime.now().plusMinutes(5))
-                    .build();
-
-            otpRepository.save(newOtp);
-
-            emailService.sendVerifyLoginMail(otp, user.getEmail());
-
-        } catch (BadCredentialsException e){
-            // Ném tiếp để GlobalHandler bắt (trả về 401)
-            throw e;
-        }
-    }
-
-    @Transactional
-    public Map<String, Object> verifyOtpLogin(@RequestParam String otp, HttpServletRequest request, HttpServletResponse response){
-        Otp checkOtp = otpRepository.findByOtp(otp).orElseThrow(
-                () -> new InvalidOtpException("Otp không hợp lệ hoặc đã hết hạn")
-        );
-
-        if(checkOtp.getExpiredAt().isBefore(LocalDateTime.now())){
-            throw new InvalidOtpException("Otp không hợp lệ hoặc đã hết hạn");
-        }
-
-        User user = userRepository.findByEmail(checkOtp.getEmail()).orElseThrow(
-                () -> new EmailExistException("Ko tìm thấy email")
-        );
-
-        // 1. Xóa otp ngay khi xác thực xong
-        otpRepository.delete(checkOtp);
-
-        // 2. Sau khi xác thực otp thành công, tạo token và cho user login
-        String accessToken = jwtService.generateAccessJwt(user);
-        String refreshToken = jwtService.generateRefreshJwt(user, request);
+            // 2. Sau khi xác thực thành công, tạo token và cho user login
+            String accessToken = jwtService.generateAccessJwt(user);
+            String refreshToken = jwtService.generateRefreshJwt(user, request);
 
         /*
         refreshToken sẽ được đưa vào cooke rồi gắn vào header của reponse
         accessToken đuợc đưa lên controller rồi trả về trong Body reponse
          */
 
-        // 3. add refresh to Cookie
-        addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
+            // 3. add refresh to Cookie
+            addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
 
-        // 4. Lưu refreshToken vào db
-        RefreshToken rt = RefreshToken.builder()
-                .id(UUID.randomUUID().toString())
-                .token(refreshToken)
-                .user(user)
-                .expiredAt(LocalDateTime.now().plusDays(7))
-                .ipAddress(jwtService.getIpAddress(request))
-                .userAgent(request.getHeader("User-Agent"))
-                .build();
+            // 4. Lưu refreshToken vào db
+            RefreshToken rt = RefreshToken.builder()
+                    .id(UUID.randomUUID().toString())
+                    .token(refreshToken)
+                    .user(user)
+                    .expiredAt(LocalDateTime.now().plusDays(7))
+                    .ipAddress(jwtService.getIpAddress(request))
+                    .userAgent(request.getHeader("User-Agent"))
+                    .build();
 
-        refreshTokenRepository.save(rt);
+            refreshTokenRepository.save(rt);
 
-        // 5. Trả accessToken về body reponse
-        Map<String, Object> body = new HashMap<>();
-        body.put("accessToken", accessToken);
-        body.put("user", Map.of(
-                "id", user.getId(), // Nên trả về ID để Frontend dùng
-                "email", user.getEmail(),
-                "userName", user.getUserName(),
-                "role", user.getRole()
-        ));
+            // 5. Trả accessToken về body reponse
+            Map<String, Object> body = new HashMap<>();
+            body.put("accessToken", accessToken);
+            body.put("user", Map.of(
+                    "id", user.getId(), // Nên trả về ID để Frontend dùng
+                    "email", user.getEmail(),
+                    "userName", user.getUserName(),
+                    "role", user.getRole()
+            ));
 
-        return body;
+            return body;
+
+        } catch (BadCredentialsException e){
+            // Ném tiếp để GlobalHandler bắt (trả về 401)
+            throw e;
+        }
     }
 
     public void logOut(HttpServletRequest request, HttpServletResponse response){

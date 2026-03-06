@@ -46,20 +46,11 @@ public class UserAuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody UserLoginRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse response) throws MessagingException {
 
-        authService.login(request);
+        Map<String, Object> data = authService.login(userLoginRequest, request, response);
 
-        ApiResponse apiResponse = ApiResponse.success("Otp xác minh đã được gửi đến email của bạn", null);
-
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    @PostMapping("/verify_otp_login")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyOtpLogin(@RequestParam String otp, HttpServletRequest request, HttpServletResponse response){
-        Map<String, Object> body = authService.verifyOtpLogin(otp, request, response);
-
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thành công", body);
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thaành công", data);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

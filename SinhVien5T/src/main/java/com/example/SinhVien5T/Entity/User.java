@@ -76,7 +76,8 @@ public class User implements UserDetails {
     private String studentCode;
 
     @Column(name = "is_verified")
-    private boolean isVerified;
+    @Builder.Default
+    private boolean isVerified = true;
 
     @Column(name = "is_active")
     @Builder.Default
