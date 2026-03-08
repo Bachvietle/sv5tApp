@@ -27,6 +27,7 @@ public class GlobalExceptionHandel {
 
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<ApiResponse> handleInvalidOtpException(InvalidOtpException ex){
+
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 

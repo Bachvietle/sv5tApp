@@ -54,6 +54,7 @@ public class AuthService {
     private String frontEndUrl;
 
 
+    @Transactional
     public void register(@RequestBody UserRegisterRequest request) throws Exception {
 
         Optional<User> existUser = userRepository.findByEmail(request.getEmail());
@@ -229,9 +230,6 @@ public class AuthService {
 
                 return false;
             }
-
-
-            registerVerifyTokenRepository.delete(registerVerifyToken);
 
             return true;
 
