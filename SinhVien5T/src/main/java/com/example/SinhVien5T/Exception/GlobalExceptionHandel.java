@@ -25,11 +25,6 @@ public class GlobalExceptionHandel {
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(InvalidOtpException.class)
-    public ResponseEntity<ApiResponse> handleInvalidOtpException(InvalidOtpException ex){
-
-        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.UNAUTHORIZED);
-    }
 
     // Xử lý lỗi Validation (@Valid) -> 400
     // Cái này cực quan trọng để FE biết user nhập thiếu trường nào

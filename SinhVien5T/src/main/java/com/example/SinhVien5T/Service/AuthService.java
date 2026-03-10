@@ -3,11 +3,9 @@ package com.example.SinhVien5T.Service;
 import com.example.SinhVien5T.Dto.Request.UserLoginRequest;
 import com.example.SinhVien5T.Dto.Request.UserRegisterRequest;
 import com.example.SinhVien5T.Entity.User;
-import com.example.SinhVien5T.Entity.VerifyToken.Otp;
 import com.example.SinhVien5T.Entity.VerifyToken.RefreshToken;
 import com.example.SinhVien5T.Entity.VerifyToken.RegisterVerifyToken;
 import com.example.SinhVien5T.Exception.EmailExistException;
-import com.example.SinhVien5T.Exception.InvalidOtpException;
 import com.example.SinhVien5T.Repository.OtpRepository;
 import com.example.SinhVien5T.Repository.RefreshTokenRepository;
 import com.example.SinhVien5T.Repository.RegisterVerifyTokenRepository;
@@ -17,14 +15,12 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -142,6 +138,10 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
             User user = (User) authentication.getPrincipal();
+
+            if (!user.isVerified() || !user.isActive()){
+                throw new EmailExistException("Tài khoản chưa được đăng kí");
+            }
 
 
             // 2. Sau khi xác thực thành công, tạo token và cho user login

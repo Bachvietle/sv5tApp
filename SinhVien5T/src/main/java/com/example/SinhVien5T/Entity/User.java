@@ -40,9 +40,6 @@ public class User implements UserDetails {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String userPassword;
 
-    @Column(name = "full_name", length = 100)
-    private String fullName;
-
     @Column(name = "role")
     @Builder.Default
     @Enumerated(EnumType.STRING)

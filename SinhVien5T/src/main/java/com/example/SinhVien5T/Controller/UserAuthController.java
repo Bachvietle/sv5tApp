@@ -52,8 +52,6 @@ public class UserAuthController {
 
         ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thaành công", data);
 
-        System.out.println("Đăng nhập thành công");
-
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
