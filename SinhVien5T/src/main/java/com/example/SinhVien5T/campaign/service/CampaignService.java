@@ -8,6 +8,7 @@ import com.example.SinhVien5T.campaign.entity.Evidence;
 import com.example.SinhVien5T.campaign.entity.Standard;
 import com.example.SinhVien5T.campaign.repository.CampaignRepository;
 import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
+import com.example.SinhVien5T.common.exception.ResourceNotFoundException;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class CampaignService {
                 CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
                 Campaign campaign = campaignRepository.findById(campaignId)
-                                .orElseThrow(() -> new RuntimeException(""));
+                                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đợt xét tuyển"));
 
                 List<Evidence> evidenceList = evidenceRepository.findByUserAndCampaign(user.getId(), campaign.getId());
 

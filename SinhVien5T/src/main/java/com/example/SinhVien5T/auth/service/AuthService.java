@@ -2,6 +2,8 @@ package com.example.SinhVien5T.auth.service;
 
 import com.example.SinhVien5T.auth.dto.request.UserLoginRequest;
 import com.example.SinhVien5T.auth.dto.request.UserRegisterRequest;
+import com.example.SinhVien5T.auth.exception.InvalidEmailDomainException;
+import com.example.SinhVien5T.auth.exception.InvalidTokenException;
 import com.example.SinhVien5T.notification.service.EmailService;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.auth.entity.RefreshToken;
@@ -10,6 +12,7 @@ import com.example.SinhVien5T.user.exception.EmailExistException;
 import com.example.SinhVien5T.auth.repository.OtpRepository;
 import com.example.SinhVien5T.auth.repository.RefreshTokenRepository;
 import com.example.SinhVien5T.auth.repository.RegisterVerifyTokenRepository;
+import com.example.SinhVien5T.user.exception.UserNotFoundException;
 import com.example.SinhVien5T.user.repository.UserRepository;
 import com.example.SinhVien5T.common.security.JwtService;
 import jakarta.mail.MessagingException;
@@ -62,7 +65,7 @@ public class AuthService {
 
 
         if(!request.getEmail().toLowerCase().endsWith("@ms.hanu.edu.vn")){
-            throw new RuntimeException("Vui lòng sử dụng email nhà trường cấp (@ms.hanu.edu.vn)");
+            throw new InvalidEmailDomainException("Vui lòng sử dụng email nhà trường cấp (@ms.hanu.edu.vn)");
         }
 
         User user = existUser.orElseGet(() ->
@@ -101,7 +104,7 @@ public class AuthService {
 
         try {
             RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
-                    .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+                    .orElseThrow(() -> new InvalidTokenException("Token không hợp lệ"));
 
             if (registerVerifyToken.getExpiryDate().isBefore(LocalDateTime.now())){
 
@@ -140,7 +143,7 @@ public class AuthService {
             User user = (User) authentication.getPrincipal();
 
             if (!user.isVerified() || !user.isActive()){
-                throw new EmailExistException("Tài khoản chưa được đăng kí");
+                throw new UserNotFoundException("Tài khoản chưa được đăng kí");
             }
 
 
