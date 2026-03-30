@@ -45,32 +45,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
-    private String avatar;
-
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
-
-    private String ethnicity;
-
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-
-    @Column(name = "birth_day")
-    private LocalDate birthDay;
-
-    @Column(columnDefinition = "TEXT")
-    private String address;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "faculty_id")
-    private Faculty faculty;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id")
-    private Classes clazz;
-
-    @Column(name = "student_code", length = 50)
-    private String studentCode;
+    @Column (name = "is_profile_completed")
+    @Builder.Default
+    private boolean isProfileCompleted = false;
 
     @Column(name = "is_verified")
     @Builder.Default
@@ -94,6 +71,76 @@ public class User implements UserDetails {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    @Column (name = "f_name", length = 50)
+    private String firstName;
+
+    @Column (name = "l_name", length = 100)
+    private String lastName;
+
+    private String avatar;
+
+    @Column (name = "birth_day")
+    private LocalDate DoB;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Column (name = "ethnicity", length = 20)
+    private String ethnicity;
+
+    @Column (name = "iden_number", length = 20)
+    private String idenNumber;
+
+    @Column (name = "university", length = 20)
+    @Builder.Default
+    private String university = "Đại học Hà Nội";
+
+    @Column (name = "field_of_study", length = 50)
+    private String fieldOfStudy;
+
+    @Column (name = "course_year", length = 4)
+    private String courseYear;
+
+    @Column (name = "student_code", length = 10)
+    private String studentCode;
+
+    @Column (name = "class_code", length = 20)
+    private String classCode;
+
+    @Column (name = "faculty", length = 50)
+    private String faculty;
+
+    @Column (name = "current_position", length = 20)
+    private String currentPosition;
+
+    @Column (name = "province")
+    private String province;
+
+    @Column (name = "commune")
+    private String commune;
+
+    @Column (name = "specific_address", columnDefinition = "TEXT")
+    private String specificAddress;
+
+    @Column (name = "province_temp")
+    private String provinceTemp;
+
+    @Column (name = "commune_temp")
+    private String communeTemp;
+
+    @Column (name = "specific_address_temp", columnDefinition = "TEXT")
+    private String specificAddressTemp;
+
+    @Column (name = "phone_number", length = 10)
+    private String phoneNumber;
+
+    @Column (name = "organ_position", length = 50)
+    @Builder.Default
+    private String organPosition = "Không";
+
+    @Column (name = "yd_member")
+    private String ydMember;
+
     public String getUserName() {
         return this.userName;
     }
@@ -112,6 +159,7 @@ public class User implements UserDetails {
     public String getUsername() {
         return this.email;
     }
+
 
     @Override
     public boolean isAccountNonExpired() {  // Mặc định true; customize nếu cần thêm field
