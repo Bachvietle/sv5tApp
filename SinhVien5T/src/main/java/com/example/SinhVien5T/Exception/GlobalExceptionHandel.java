@@ -22,7 +22,7 @@ public class GlobalExceptionHandel {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse> handleBadCredentialsException(BadCredentialsException ex){
-        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(ApiResponse.error("Email hoặc mật khẩu không chính xác"), HttpStatus.UNAUTHORIZED);
     }
 
 
@@ -52,6 +52,6 @@ public class GlobalExceptionHandel {
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex){
         ex.printStackTrace(); // Log lỗi ra console sever để fix bug
 
-        return new ResponseEntity<>(ApiResponse.error("Lỗi hệ thống" + ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

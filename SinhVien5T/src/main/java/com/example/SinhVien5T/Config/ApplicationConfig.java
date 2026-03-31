@@ -24,7 +24,7 @@ public class ApplicationConfig {
     public UserDetailsService userDetailsService(){
 
         return username -> userRepository.findByEmail(username).orElseThrow(
-                () -> new RuntimeException("User not found")
+                () -> new RuntimeException("Email hoặc mật khẩu không chính xác")
         );
     }
 

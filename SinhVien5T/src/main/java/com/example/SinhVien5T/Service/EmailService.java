@@ -30,7 +30,7 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e){
-            throw new MessagingException("Ko gửi được link xác minh");
+            throw new MessagingException("Không gửi được link xác minh");
         }
     }
 
@@ -60,7 +60,7 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e){
-            throw new MessagingException("Ko gửi được email OTP");
+            throw new MessagingException("Không gửi được email OTP");
         }
     }
 
@@ -79,7 +79,7 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e){
-            throw new MessagingException("Ko gửi được link xác minh");
+            throw new MessagingException("Không gửi được link xác minh");
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.SinhVien5T.Service;
 import com.example.SinhVien5T.Dto.Request.UserLoginRequest;
 import com.example.SinhVien5T.Dto.Request.UserRegisterRequest;
 import com.example.SinhVien5T.Entity.User;
+import com.example.SinhVien5T.Entity.VerifyToken.Otp;
 import com.example.SinhVien5T.Entity.VerifyToken.RefreshToken;
 import com.example.SinhVien5T.Entity.VerifyToken.RegisterVerifyToken;
 import com.example.SinhVien5T.Exception.EmailExistException;
@@ -15,12 +16,14 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,14 +52,13 @@ public class AuthService {
     @Value("${app.auth.frontendUrl}")
     private String frontEndUrl;
 
-
     @Transactional
     public void register(@RequestBody UserRegisterRequest request) throws Exception {
 
         Optional<User> existUser = userRepository.findByEmail(request.getEmail());
 
         if (existUser.isPresent() && existUser.get().isVerified()) {
-            throw new EmailExistException("Email đã được đăng kí");
+            throw new EmailExistException("Tài khoản đã tồn tại");
         }
 
 
@@ -91,7 +93,7 @@ public class AuthService {
 
         registerVerifyTokenRepository.save(registerVerifyToken);
 
-        String verifyLink = "http://localhost:8080/user/auth/verify_register_token?token=" + token; // BE handle endpoint nay (ko phai viet FE)
+        String verifyLink = "https://tangiest-rosenda-stirruplike.ngrok-free.dev/user/auth/verify_register_token?token=" + token; // BE handle endpoint nay (ko phai viet FE)
 
         emailService.sendVerifyRegisterMail(verifyLink, request.getEmail());
 
@@ -139,10 +141,6 @@ public class AuthService {
 
             User user = (User) authentication.getPrincipal();
 
-            if (!user.isVerified() || !user.isActive()){
-                throw new EmailExistException("Tài khoản chưa được đăng kí");
-            }
-
 
             // 2. Sau khi xác thực thành công, tạo token và cho user login
             String accessToken = jwtService.generateAccessJwt(user);
@@ -173,9 +171,7 @@ public class AuthService {
             body.put("accessToken", accessToken);
             body.put("user", Map.of(
                     "id", user.getId(), // Nên trả về ID để Frontend dùng
-                    "email", user.getEmail(),
-                    "userName", user.getUserName(),
-                    "role", user.getRole()
+                    "email", user.getEmail()
             ));
 
             return body;
@@ -227,7 +223,6 @@ public class AuthService {
             if (registerVerifyToken.getExpiryDate().isBefore(LocalDateTime.now())){
 
                 registerVerifyTokenRepository.delete(registerVerifyToken);
-
                 return false;
             }
 
@@ -262,7 +257,7 @@ public class AuthService {
 
         RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(refreshToken)
                 .filter(rt -> rt.getExpiredAt().isAfter(LocalDateTime.now()))
-                .orElseThrow(() -> new RuntimeException("Token ko hợp lệ"));
+                .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
 
         String newAccessToken = jwtService.generateAccessJwt(storedRefreshToken.getUser());
 
