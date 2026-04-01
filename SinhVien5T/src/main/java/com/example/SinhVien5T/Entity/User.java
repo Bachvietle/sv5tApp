@@ -47,7 +47,7 @@ public class User implements UserDetails {
 
     @Column (name = "is_profile_completed")
     @Builder.Default
-    private boolean isProfileCompleted = false;
+    private boolean profileCompleted = false;
 
     @Column(name = "is_verified")
     @Builder.Default

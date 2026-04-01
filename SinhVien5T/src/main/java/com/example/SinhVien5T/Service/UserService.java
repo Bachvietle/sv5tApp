@@ -77,6 +77,7 @@ public class UserService {
                 .ydMember(user.getYdMember())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .isProfileUpdate(user.isProfileCompleted())
                 .build();
     }
 
