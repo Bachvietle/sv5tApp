@@ -4,6 +4,7 @@ import com.example.SinhVien5T.auth.exception.InvalidTokenException;
 import com.example.SinhVien5T.common.dto.response.ApiResponse;
 import com.example.SinhVien5T.user.exception.EmailExistException;
 import com.example.SinhVien5T.auth.exception.InvalidEmailDomainException;
+import com.example.SinhVien5T.user.exception.ProfileUpdateException;
 import com.example.SinhVien5T.user.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,9 +24,12 @@ public class GlobalExceptionHandel {
     public ResponseEntity<ApiResponse> handleEmailExistException(EmailExistException ex){
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.CONFLICT);
     }
-
+    @ExceptionHandler(ProfileUpdateException.class)
+    public ResponseEntity<ApiResponse> handleProfileUpdateException(ProfileUpdateException ex){
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(InvalidEmailDomainException.class)
-    public ResponseEntity<ApiResponse> handleInvalidEmailDomainException(EmailExistException ex){
+    public ResponseEntity<ApiResponse> handleInvalidEmailDomainException(InvalidTokenException ex){
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
@@ -44,10 +48,6 @@ public class GlobalExceptionHandel {
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiResponse> handleInvalidTokenException(EmailExistException ex){
-        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.UNAUTHORIZED);
-    }
 
 
     @ExceptionHandler(BadCredentialsException.class)
