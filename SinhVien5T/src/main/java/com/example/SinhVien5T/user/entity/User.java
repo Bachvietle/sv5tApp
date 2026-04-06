@@ -1,5 +1,8 @@
 package com.example.SinhVien5T.user.entity;
 
+
+import com.example.SinhVien5T.user.entity.Gender;
+import com.example.SinhVien5T.user.entity.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,7 +32,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_name", unique = true, length = 100)
+    @Column(name = "user_name", nullable = false, unique = true, length = 100)
     private String userName;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -42,30 +46,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
-    private String avatar;
-
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
-
-    private String ethnicity;
-
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-
-    @Column(name = "birth_day")
-    private LocalDate birthDay;
-
-    @Column(columnDefinition = "TEXT")
-    private String address;
-
-    @Column(name = "faculty")
-    private String faculty;
-
-    @Column(name = "class")
-    private String classId;
-
-    @Column(name = "student_code", length = 50)
-    private String studentCode;
+    @Column (name = "is_profile_completed")
+    @Builder.Default
+    private boolean profileCompleted = false;
 
     @Column(name = "is_verified")
     @Builder.Default
@@ -89,6 +72,76 @@ public class User implements UserDetails {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    @Column (name = "f_name", length = 50)
+    private String firstName;
+
+    @Column (name = "l_name", length = 100)
+    private String lastName;
+
+    private String avatar;
+
+    @Column (name = "birth_day")
+    private LocalDate dob;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Column (name = "ethnicity", length = 20)
+    private String ethnicity;
+
+    @Column (name = "iden_number", length = 20)
+    private String idenNumber;
+
+    @Column (name = "university", length = 20)
+    @Builder.Default
+    private String university = "Đại học Hà Nội";
+
+    @Column (name = "field_of_study", length = 50)
+    private String fieldOfStudy;
+
+    @Column (name = "course_year", length = 4)
+    private String courseYear;
+
+    @Column (name = "student_code", length = 10)
+    private String studentCode;
+
+    @Column (name = "class_code", length = 20)
+    private String classCode;
+
+    @Column (name = "faculty", length = 50)
+    private String faculty;
+
+    @Column (name = "current_position", length = 20)
+    private String currentPosition;
+
+    @Column (name = "province")
+    private String province;
+
+    @Column (name = "commune")
+    private String commune;
+
+    @Column (name = "specific_address", columnDefinition = "TEXT")
+    private String specificAddress;
+
+    @Column (name = "province_temp")
+    private String provinceTemp;
+
+    @Column (name = "commune_temp")
+    private String communeTemp;
+
+    @Column (name = "specific_address_temp", columnDefinition = "TEXT")
+    private String specificAddressTemp;
+
+    @Column (name = "phone_number", length = 10)
+    private String phoneNumber;
+
+    @Column (name = "organ_position", length = 50)
+    @Builder.Default
+    private String organPosition = "Không";
+
+    @Column (name = "yd_member")
+    private String ydMember;
+
     public String getUserName() {
         return this.userName;
     }
@@ -107,6 +160,7 @@ public class User implements UserDetails {
     public String getUsername() {
         return this.email;
     }
+
 
     @Override
     public boolean isAccountNonExpired() {  // Mặc định true; customize nếu cần thêm field
@@ -128,5 +182,3 @@ public class User implements UserDetails {
         return this.isActive;
     }
 }
-
-
