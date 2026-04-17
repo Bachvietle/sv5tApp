@@ -75,7 +75,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateProfile(UpdateProfileRequest request) {
+    public void updateProfile(UpdateProfileRequest request) {
         User user = getUserDetails();
 
         try {
@@ -107,8 +107,7 @@ public class UserService {
                 user.setProfileCompleted(true);
             }
 
-            User savedUser = userRepository.save(user);
-            return buildUserResponse(savedUser);
+            userRepository.save(user);
         } catch (Exception e) {
             throw new ProfileUpdateException("Cập nhật thất bại: " + e.getMessage());
         }
