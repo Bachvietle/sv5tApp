@@ -10,11 +10,14 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 @RestController
@@ -37,28 +40,36 @@ public class UserAuthController {
     }
 
     @GetMapping("/verify_register_token")
-    public ResponseEntity<ApiResponse> verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws IOException {
-        authService.verifyRegisterToken(token, response);
-
-        ApiResponse apiResponse = ApiResponse.success("Xác minh thành công", null);
-
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    public ResponseEntity<Void> verifyRegisterToken(@RequestParam String token) throws IOException {
+        String redirectUrl = authService.verifyRegisterToken(token);
+        
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
+                .build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse response) throws MessagingException {
 
-        Map<String, Object> data = authService.login(userLoginRequest, request, response);
+        String ipAddress = getIpAddress(request);
+        String userAgent = request.getHeader("User-Agent");
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thaành công", data);
+        Map<String, Object> data = authService.login(userLoginRequest, ipAddress, userAgent);
+
+        String refreshToken = (String) data.remove("refreshToken");
+        addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Đăng nhập thành công", data);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
 
     @PostMapping("/log_out")
-    public ResponseEntity<ApiResponse> logOut(HttpServletRequest request, HttpServletResponse response){
-        authService.logOut(request, response);
+    public ResponseEntity<ApiResponse> logOut(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response){
+        authService.logOut(refreshToken);
+
+        addRefreshCookie(null, 0, response);
 
         ApiResponse apiResponse = ApiResponse.success("", null);
 
@@ -66,12 +77,28 @@ public class UserAuthController {
     }
 
     @PostMapping("/refresh_access_token")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> refreshAccessToken(HttpServletRequest request){
-        Map<String, Object> body = authService.refreshAccessToken(request);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> refreshAccessToken(@CookieValue(name = "refreshToken", required = false) String refreshToken){
+        Map<String, Object> body = authService.refreshAccessToken(refreshToken);
 
         ApiResponse<Map<String, Object>> apiResponse = ApiResponse.success("Refresh access token thành công", body);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    private void addRefreshCookie(String refreshToken, int maxAge, HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken != null ? refreshToken : "")
+                .httpOnly(true)
+                .secure(false) // dev
+                .path("/")
+                .maxAge(maxAge)
+                .sameSite("Strict") // dev
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    private String getIpAddress(HttpServletRequest request) {
+        String remoteAddress = request.getHeader("X-Forwarded-For");
+        return (remoteAddress != null && !remoteAddress.isEmpty()) ? remoteAddress : request.getRemoteAddr();
     }
 
     @PostMapping("/missing_password")

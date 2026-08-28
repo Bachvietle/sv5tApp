@@ -6,6 +6,7 @@ import com.example.SinhVien5T.auth.exception.InvalidEmailDomainException;
 import com.example.SinhVien5T.auth.exception.InvalidTokenException;
 import com.example.SinhVien5T.notification.service.EmailService;
 import com.example.SinhVien5T.user.entity.User;
+import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.auth.entity.RefreshToken;
 import com.example.SinhVien5T.auth.entity.RegisterVerifyToken;
 import com.example.SinhVien5T.user.exception.EmailExistException;
@@ -16,13 +17,8 @@ import com.example.SinhVien5T.user.exception.UserNotFoundException;
 import com.example.SinhVien5T.user.repository.UserRepository;
 import com.example.SinhVien5T.common.security.JwtService;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -100,7 +96,7 @@ public class AuthService {
 
     }
 
-    public void verifyRegisterToken(@RequestParam String token, HttpServletResponse response) throws RuntimeException, IOException {
+    public String verifyRegisterToken(@RequestParam String token) {
 
         try {
             RegisterVerifyToken registerVerifyToken = registerVerifyTokenRepository.findByToken(token)
@@ -110,8 +106,7 @@ public class AuthService {
 
                 registerVerifyTokenRepository.delete(registerVerifyToken);
 
-                response.sendRedirect( frontEndUrl + "/login?error=token_expired");
-                return;
+                return frontEndUrl + "/login?error=token_expired";
             }
 
             // Link đc xác minh thành công, save isActive User rồi redirect về trong login
@@ -121,15 +116,15 @@ public class AuthService {
 
             registerVerifyTokenRepository.delete(registerVerifyToken);
 
-            response.sendRedirect(frontEndUrl + "/login?verified=success");
+            return frontEndUrl + "/login?verified=success";
 
         } catch (Exception e) {
             // Trường hợp lỗi khác (token rác, không tìm thấy...)
-            response.sendRedirect(frontEndUrl + "/login?error=invalid_token");
+            return frontEndUrl + "/login?error=invalid_token";
         }
     }
 
-    public Map<String, Object> login(UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse response) throws MessagingException {
+    public Map<String, Object> login(UserLoginRequest userLoginRequest, String ipAddress, String userAgent) {
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 userLoginRequest.getEmail(), userLoginRequest.getUserPassword()
@@ -140,7 +135,9 @@ public class AuthService {
             // 1. Xác minh user
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
-            User user = (User) authentication.getPrincipal();
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userRepository.findById(customUserDetails.getId())
+                    .orElseThrow(() -> new UserNotFoundException("Tài khoản chưa được đăng kí"));
 
             if (!user.isVerified() || !user.isActive()){
                 throw new UserNotFoundException("Tài khoản chưa được đăng kí");
@@ -149,15 +146,7 @@ public class AuthService {
 
             // 2. Sau khi xác thực thành công, tạo token và cho user login
             String accessToken = jwtService.generateAccessJwt(user);
-            String refreshToken = jwtService.generateRefreshJwt(user, request);
-
-        /*
-        refreshToken sẽ được đưa vào cooke rồi gắn vào header của reponse
-        accessToken đuợc đưa lên controller rồi trả về trong Body reponse
-         */
-
-            // 3. add refresh to Cookie
-            addRefreshCookie(refreshToken, 7 * 24 * 60 * 60, response);
+            String refreshToken = jwtService.generateRefreshJwt(user, ipAddress);
 
             // 4. Lưu refreshToken vào db
             RefreshToken rt = RefreshToken.builder()
@@ -165,8 +154,8 @@ public class AuthService {
                     .token(refreshToken)
                     .user(user)
                     .expiredAt(LocalDateTime.now().plusDays(7))
-                    .ipAddress(jwtService.getIpAddress(request))
-                    .userAgent(request.getHeader("User-Agent"))
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
                     .build();
 
             refreshTokenRepository.save(rt);
@@ -174,6 +163,7 @@ public class AuthService {
             // 5. Trả accessToken về body reponse
             Map<String, Object> body = new HashMap<>();
             body.put("accessToken", accessToken);
+            body.put("refreshToken", refreshToken); // Put here so Controller can extract and set to cookie
             body.put("user", Map.of(
                     "id", user.getId(), // Nên trả về ID để Frontend dùng
                     "email", user.getEmail(),
@@ -188,16 +178,10 @@ public class AuthService {
         }
     }
 
-    public void logOut(HttpServletRequest request, HttpServletResponse response){
-
-        String refreshToken = getValueCookie("refreshToken", request);
-
-        if(refreshToken != null){
+    public void logOut(String refreshToken){
+        if(refreshToken != null && !refreshToken.isEmpty()){
             refreshTokenRepository.deleteByToken(refreshToken);
         }
-
-        // Xóa cookie trong trình duyệt
-        addRefreshCookie(null, 0, response);
     }
 
     public void missingPassWord(String email) throws MessagingException {
@@ -258,9 +242,11 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public Map<String, Object> refreshAccessToken(HttpServletRequest request){
+    public Map<String, Object> refreshAccessToken(String refreshToken){
 
-        String refreshToken = getValueCookie("refreshToken", request);
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new RuntimeException("Token ko hợp lệ");
+        }
 
         RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(refreshToken)
                 .filter(rt -> rt.getExpiredAt().isAfter(LocalDateTime.now()))
@@ -269,47 +255,6 @@ public class AuthService {
         String newAccessToken = jwtService.generateAccessJwt(storedRefreshToken.getUser());
 
         return Map.of("accessToken", newAccessToken);
-    }
-
-
-
-    /*
-    .......................................................................
-     Các hàm Helper
-     */
-
-    // add RefreshToken to Cookie
-    public void addRefreshCookie(String refreshToken, int maxAge, HttpServletResponse response) {
-
-        // Tạo cookie để cho refreshToken vào
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true) // Cookie sẽ không thể bị truy cập bởi JavaScript thông qua document.cookie secure
-                .secure(false) // để tạm dùng trong MT dev (chạy local dùng http)
-                .path("/")
-                .maxAge(maxAge)
-                .sameSite("Strict") // để tạm dùng trong MT dev
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
-
-    /*
-     Hàm này để lấy giá trị của name từ cookie.
-
-     (Ở đây sẽ dùng để lấy gtri của refreshToken)
-     */
-    public String getValueCookie(String name, HttpServletRequest request){
-
-        if(request.getCookies() == null){
-            return null;
-        }
-
-        return Arrays.stream(request.getCookies()) // Gtri trả về là 1 Array
-                .filter(c -> name.equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst().orElse(null);
-
     }
 }
 
