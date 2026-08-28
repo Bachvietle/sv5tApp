@@ -63,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 => Chỉ cần extract các ttin này từ jwt mà ko cần query xuống db để lấy UserDetails mỗi lần reqest
                  */
-                UserDetails userDetails = new CustomUserDetails( // class User ở đây là của 'org.springframework.security.core.userdetails.User' chứ kph entity User của mình
+                UserDetails userDetails = new CustomUserDetails(
                         id,
                         userEmail,
                         "",
