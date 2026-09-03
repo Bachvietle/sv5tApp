@@ -1,22 +1,21 @@
 package com.example.SinhVien5T.evidence.service;
 
 import com.example.SinhVien5T.campaign.entity.Criteria;
+import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.campaign.repository.CriteriaRepository;
+import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceRequest;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceResponse;
-import com.example.SinhVien5T.evidence.entity.Evidence;
-import com.example.SinhVien5T.evidence.repository.EvidenceRepository;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.CachingUserDetailsService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +30,12 @@ public class EvidenceService {
     private final EvidenceRepository evidenceRepository;
 
 
-    public UploadEvidenceResponse uploadFile(UploadEvidenceRequest request) throws IOException {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-
+    @Transactional
+    public UploadEvidenceResponse uploadFile(UploadEvidenceRequest request, Long userId) throws IOException {
 
         Criteria criteriaRef = criteriaRepository.getReferenceById(request.getCriteriaId());
 
-        User userRef = userRepository.getReferenceById(user.getId());
+        User userRef = userRepository.getReferenceById(userId);
 
         /*
         Ktra xem criteria này user đã upload chưa:
@@ -56,7 +51,12 @@ public class EvidenceService {
 
             evidenceExist.setEvidenceUrl(evidenceUrl);
 
-            evidenceRepository.save(evidenceExist);
+            try {
+                evidenceRepository.save(evidenceExist);
+            } catch (RuntimeException e) {
+                fileStorageService.deleteFile(evidenceUrl);
+                throw new RuntimeException("Lỗi lưu file");
+            }
 
             return UploadEvidenceResponse.builder()
                     .evidenceId(evidenceExist.getId())
