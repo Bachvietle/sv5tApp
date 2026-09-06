@@ -3,7 +3,6 @@ package com.example.SinhVien5T.evidence.controller;
 import com.example.SinhVien5T.common.dto.response.ApiResponse;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceRequest;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceResponse;
-import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.evidence.service.EvidenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
