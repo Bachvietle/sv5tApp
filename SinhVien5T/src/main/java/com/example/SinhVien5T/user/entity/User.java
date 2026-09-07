@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,9 +25,10 @@ import java.util.List;
 @Table(name = "users")
 @Data
 @Builder
+@DynamicUpdate
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -146,39 +148,4 @@ public class User implements UserDetails {
         return this.userName;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("role:" + this.role.name()));
-    }
-
-    @Override
-    public String getPassword() {
-        return this.userPassword;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email;
-    }
-
-
-    @Override
-    public boolean isAccountNonExpired() {  // Mặc định true; customize nếu cần thêm field
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {  // Mặc định true
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() { // Mặc định true
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {  // Dựa trên field enabled
-        return this.isActive;
-    }
 }

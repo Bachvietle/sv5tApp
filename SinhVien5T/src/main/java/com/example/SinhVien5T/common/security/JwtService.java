@@ -5,7 +5,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -70,10 +69,7 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshJwt(User user, HttpServletRequest request){
-
-        String userAgent = request.getHeader("User-Agent");
-        String ipAddress = getIpAddress(request);
+    public String generateRefreshJwt(User user, String ipAddress){
 
         String refreshToken =  Jwts.builder()
                 .subject(user.getEmail())
@@ -85,14 +81,6 @@ public class JwtService {
                 .compact();
 
         return refreshToken;
-    }
-
-    // helper để lấy ip (để đoạn code trên gọn hơn)
-    public String getIpAddress (HttpServletRequest request){
-
-        String remoteAddress = request.getHeader("X-Forwarded-For");
-
-        return (remoteAddress != null && !remoteAddress.isEmpty()) ? remoteAddress : request.getRemoteAddr();
     }
 }
 

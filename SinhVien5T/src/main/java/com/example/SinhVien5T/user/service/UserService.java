@@ -79,7 +79,28 @@ public class UserService {
         User user = getUserDetails();
 
         try {
-
+            if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+            if (request.getLastName() != null) user.setLastName(request.getLastName());
+            if (request.getDob() != null) user.setDob(request.getDob());
+            if (request.getGender() != null) user.setGender(request.getGender());
+            if (request.getEthnicity() != null) user.setEthnicity(request.getEthnicity());
+            if (request.getIdenNumber() != null) user.setIdenNumber(request.getIdenNumber());
+            if (request.getUniversity() != null) user.setUniversity(request.getUniversity());
+            if (request.getFieldOfStudy() != null) user.setFieldOfStudy(request.getFieldOfStudy());
+            if (request.getCourseYear() != null) user.setCourseYear(request.getCourseYear());
+            if (request.getStudentCode() != null) user.setStudentCode(request.getStudentCode());
+            if (request.getClassCode() != null) user.setClassCode(request.getClassCode());
+            if (request.getFaculty() != null) user.setFaculty(request.getFaculty());
+            if (request.getCurrentPosition() != null) user.setCurrentPosition(request.getCurrentPosition());
+            if (request.getProvince() != null) user.setProvince(request.getProvince());
+            if (request.getCommune() != null) user.setCommune(request.getCommune());
+            if (request.getSpecificAddress() != null) user.setSpecificAddress(request.getSpecificAddress());
+            if (request.getProvinceTemp() != null) user.setProvinceTemp(request.getProvinceTemp());
+            if (request.getCommuneTemp() != null) user.setCommuneTemp(request.getCommuneTemp());
+            if (request.getSpecificAddressTemp() != null) user.setSpecificAddressTemp(request.getSpecificAddressTemp());
+            if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+            if (request.getOrganPosition() != null) user.setOrganPosition(request.getOrganPosition());
+            if (request.getYdMember() != null) user.setYdMember(request.getYdMember());
 
 
             if (!user.isProfileCompleted()) {
