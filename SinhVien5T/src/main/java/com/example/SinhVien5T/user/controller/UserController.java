@@ -4,6 +4,7 @@ package com.example.SinhVien5T.user.controller;
 import com.example.SinhVien5T.auth.dto.request.UserUpdateProfileRequest;
 import com.example.SinhVien5T.common.dto.response.ApiResponse;
 import com.example.SinhVien5T.user.dto.request.UpdateProfileRequest;
+import com.example.SinhVien5T.user.dto.response.UserProfileResponse;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.user.service.UserService;
@@ -22,8 +23,8 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<User>> getProfile(@AuthenticationPrincipal CustomUserDetails currentUser){
-        User data = userService.getProfile(currentUser.getId());
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails currentUser){
+        UserProfileResponse data = userService.getProfile(currentUser.getId());
         return new ResponseEntity<>(ApiResponse.success("Lấy thông tin thành công", data), HttpStatus.OK);
     }
 
