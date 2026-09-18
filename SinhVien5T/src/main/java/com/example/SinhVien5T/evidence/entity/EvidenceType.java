@@ -1,4 +1,4 @@
-package com.example.SinhVien5T.campaign.entity;
+package com.example.SinhVien5T.evidence.entity;
 
 public enum EvidenceType {
     IMAGE,

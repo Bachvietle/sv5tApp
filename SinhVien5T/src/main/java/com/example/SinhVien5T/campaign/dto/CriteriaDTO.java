@@ -1,9 +1,5 @@
 package com.example.SinhVien5T.campaign.dto;
 
-import com.example.SinhVien5T.campaign.entity.EvidenceType;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 
 import java.util.List;

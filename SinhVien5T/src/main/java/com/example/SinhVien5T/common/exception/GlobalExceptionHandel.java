@@ -48,6 +48,15 @@ public class GlobalExceptionHandel {
         return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(EmptyFileException.class)
+    public ResponseEntity<ApiResponse> handleEmptyFileException(EmptyFileException ex){
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidFileFormatException.class)
+    public ResponseEntity<ApiResponse> handleInvalidFileFormatException(InvalidFileFormatException ex){
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
 
 
     @ExceptionHandler(BadCredentialsException.class)

@@ -1,7 +1,9 @@
 package com.example.SinhVien5T.campaign.repository;
 
-import com.example.SinhVien5T.campaign.entity.Evidence;
+import com.example.SinhVien5T.campaign.entity.Criteria;
+import com.example.SinhVien5T.evidence.entity.Evidence;
 
+import com.example.SinhVien5T.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +20,6 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
             "JOIN  st.campaign ca " +
             "WHERE e.user.id = :userId AND ca.id = :campaignId ")
     List<Evidence> findByUserAndCampaign(@Param("userId") Long userId, @Param("campaignId") Long campaignId);
+
+    Evidence findByUserAndCriteria(User user, Criteria criteria);
 }

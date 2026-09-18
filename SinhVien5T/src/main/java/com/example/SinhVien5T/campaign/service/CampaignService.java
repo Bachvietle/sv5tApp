@@ -4,13 +4,12 @@ import com.example.SinhVien5T.campaign.dto.CriteriaDTO;
 import com.example.SinhVien5T.campaign.dto.StandardDTO;
 import com.example.SinhVien5T.campaign.entity.Campaign;
 import com.example.SinhVien5T.campaign.entity.Criteria;
-import com.example.SinhVien5T.campaign.entity.Evidence;
+import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.campaign.entity.Standard;
 import com.example.SinhVien5T.campaign.repository.CampaignRepository;
 import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
 import com.example.SinhVien5T.common.exception.ResourceNotFoundException;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
-import com.example.SinhVien5T.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
