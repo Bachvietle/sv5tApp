@@ -1,5 +1,6 @@
 package com.example.SinhVien5T.campaign.entity;
 
+import com.example.SinhVien5T.evidence.entity.EvidenceType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
