@@ -5,6 +5,7 @@ import com.example.SinhVien5T.campaign.repository.CriteriaRepository;
 import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceRequest;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceResponse;
+import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.user.repository.UserRepository;

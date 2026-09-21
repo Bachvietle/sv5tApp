@@ -78,9 +78,18 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .claim("role", user.getRole().toString())
                 .claim("ip", ipAddress)
+                .signWith(jwtSecretKey)
                 .compact();
 
         return refreshToken;
+    }
+
+    public String getIpAddress(jakarta.servlet.http.HttpServletRequest request) {
+        String ipAddress = request.getHeader("X-Forwarded-For");
+        if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+            ipAddress = request.getRemoteAddr();
+        }
+        return ipAddress;
     }
 }
 
