@@ -1,6 +1,7 @@
 package com.example.SinhVien5T.evidence.service;
 
 import com.example.SinhVien5T.campaign.entity.Criteria;
+import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.campaign.repository.CriteriaRepository;
 import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceRequest;
