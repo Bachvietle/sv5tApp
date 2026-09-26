@@ -1,6 +1,7 @@
 package com.example.SinhVien5T.user.service;
 
 import com.example.SinhVien5T.user.dto.request.UpdateProfileRequest;
+import com.example.SinhVien5T.user.dto.response.UserProfileResponse;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.user.exception.ProfileUpdateException;
@@ -10,14 +11,18 @@ import com.example.SinhVien5T.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.Year;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Data
 public class UserService {
-    
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
@@ -26,8 +31,8 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
-    public User getProfile(Long userId) {
-        return getUserById(userId);
+    public UserProfileResponse getProfile(Long userId) {
+        return userMapper.toUserProfileResponse(getUserById(userId));
     }
 
     @Transactional
