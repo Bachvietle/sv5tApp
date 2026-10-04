@@ -1,9 +1,10 @@
-package com.example.SinhVien5T.campaign.repository;
+package com.example.SinhVien5T.evidence.repository;
 
 import com.example.SinhVien5T.campaign.entity.Criteria;
 import com.example.SinhVien5T.evidence.entity.Evidence;
 
 import com.example.SinhVien5T.user.entity.User;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
+public interface EvidenceRepository extends JpaRepository<Evidence, Long>, JpaSpecificationExecutor<Evidence> {
 
     @Query("SELECT e FROM Evidence e " +
             "JOIN  e.criteria cr " +

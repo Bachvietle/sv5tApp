@@ -1,4 +1,4 @@
-package com.example.SinhVien5T.user.dto.response;
+package com.example.SinhVien5T.common.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

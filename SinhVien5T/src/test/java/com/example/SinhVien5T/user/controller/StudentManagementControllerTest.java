@@ -2,7 +2,7 @@ package com.example.SinhVien5T.user.controller;
 
 import com.example.SinhVien5T.user.dto.request.StudentFilterRequest;
 import com.example.SinhVien5T.user.dto.request.UpdateStudentStatusRequest;
-import com.example.SinhVien5T.user.dto.response.PageResponse;
+import com.example.SinhVien5T.common.dto.response.PageResponse;
 import com.example.SinhVien5T.user.dto.response.StudentDetailResponse;
 import com.example.SinhVien5T.user.dto.response.StudentSummaryResponse;
 import com.example.SinhVien5T.user.service.StudentManagementService;
