@@ -1,6 +1,6 @@
-# SinhVien5T — Progress & Context Log
+# SinhVien5T - Progress & Context Log
 
-## 1. Feature: Student Management (Admin & Mentor) — [COMPLETED]
+## 1. Feature: Student Management (Admin & Mentor) - [COMPLETED]
 * **Mục tiêu:** Quản lý tài khoản sinh viên (xem danh sách, xem chi tiết, khóa/mở khóa).
 * **Quyền hạn:** Cả `role:ADMIN` và `role:MENTOR` đều có quyền thao tác. Không ai được phép sửa thông tin cá nhân của sinh viên hay khóa tài khoản ADMIN.
 
@@ -13,7 +13,7 @@
 
 ### Các File Đã Tạo / Cập Nhật
 * **DTO:** `StudentFilterRequest`, `UpdateStudentStatusRequest`, `StudentSummaryResponse`, `StudentDetailResponse`, `PageResponse<T>` (`user/dto/`).
-* **Specification:** `UserSpecification` (ép `role = Role.USER`, dynamic WHERE query).
+* **Specification:** `UserSpecification` (Ép `role = Role.USER`, dynamic WHERE query).
 * **Repository:** `UserRepository` (kế thừa `JpaSpecificationExecutor<User>`).
 * **Mapper:** `UserMapper` (MapStruct ghép `fullName`, map `profileCompleted`).
 * **Service:** `StudentManagementService`.
@@ -22,5 +22,34 @@
 
 ---
 
-## 2. Dự kiến tiếp theo — [PLANNED]
-* Sẽ được quyết định và triển khai theo yêu cầu tiếp theo (ví dụ: Application Management, Quản trị Mentor, hoặc các module nghiệp vụ khác).
+## 2. Feature: Evidence Management (Admin & Mentor) - [COMPLETED]
+* **Mục tiêu:** Quản lý và xét duyệt các minh chứng (Evidence) sinh viên tải lên cho từng tiêu chí.
+* **Quyền hạn:** Cấp `role:ADMIN` và `role:MENTOR`.
+
+### APIs Đã Triển Khai
+* `GET /management/evidences`: Lấy danh sách minh chứng có phân trang và lọc.
+  * **Default Sort:** Lọc theo thời gian nộp (`submittedAt DESC`).
+  * **Filters:** `keyword` (tìm theo MSSV, Họ tên sinh viên), `campaignId`, `standardId`, `criteriaId`, `status`, `isResubmitted` (những minh chứng bị nộp lại `submissionCount > 1`).
+* `PATCH /management/evidences/{id}/review`: Cán bộ xét duyệt đánh giá minh chứng.
+  * **Payload:** `status` (APPROVED, REJECTED, NEEDS_MODIFICATION), `reviewerComment`.
+  * **Logic:** Cập nhật trạng thái, lưu `reviewer_id` và `reviewed_at`.
+
+### Các File Đã Tạo / Cập Nhật
+* **Cấu trúc DTO & Entity:**
+  * Thêm `EvidenceStatus` (Enum).
+  * Chuyển `PageResponse` sang thư mục chung `common/dto/response`.
+  * Chuyển `EvidenceRepository` sang `evidence/repository`.
+  * Tạo các class DTO: `EvidenceFilterRequest`, `EvidenceReviewRequest`, `EvidenceAdminDTO`.
+* **Specification & Mapper:** 
+  * `EvidenceSpecification` (Fetch lazy properties, filter theo keyword FirstName, LastName, StudentCode).
+  * `EvidenceMapper` (Dùng MapStruct, có default method buildFullName).
+* **Service:** `EvidenceManagementService` (Chứa logic xử lý nghiệp vụ xét duyệt).
+* **Controller:** `EvidenceManagementController` (Sử dụng `@ModelAttribute` cho filter gọn gàng).
+* Tích hợp: Fix lại các lỗi logic (NPE, Type Mismatch) xuất hiện trong `CampaignService` và `EvidenceService`.
+
+---
+
+## 3. Dự kiến tiếp theo - [PLANNED]
+* **Feature: Quản lý Hồ sơ xét tuyển (Application)**.
+* Tạo thực thể `Application` đại diện cho một hồ sơ hoàn chỉnh.
+* Xây dựng API Submit cho sinh viên và API quản lý Application cho Admin.

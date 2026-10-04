@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/auth/**", "/test/**").permitAll()
 
                         // Phân quyền cho Admin và Mentor quản lý sinh viên
-                        .requestMatchers("/management/students/**").hasAnyAuthority("role:ADMIN", "role:MENTOR")
+                        .requestMatchers("/management/students/**", "/management/evidences/**").hasAnyAuthority("role:ADMIN", "role:MENTOR")
 
                         // Các endpoint phải authen
                         .anyRequest().authenticated()
