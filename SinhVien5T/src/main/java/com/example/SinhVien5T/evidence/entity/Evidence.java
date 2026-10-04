@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Table(name = "evidence", uniqueConstraints = {
@@ -37,9 +39,26 @@ public class Evidence {
     @Column(name = "evidence_url", nullable = false)
     private String evidenceUrl;
 
-    private Boolean status;
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private EvidenceStatus status = EvidenceStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer_id")
+    private User reviewer;
 
     @Column(name = "reviewer_comment")
     private String reviewerComment;
+
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
+
+    @Builder.Default
+    @Column(name = "submission_count", nullable = false)
+    private Integer submissionCount = 0;
 
 }

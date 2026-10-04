@@ -5,9 +5,10 @@ import com.example.SinhVien5T.campaign.dto.StandardDTO;
 import com.example.SinhVien5T.campaign.entity.Campaign;
 import com.example.SinhVien5T.campaign.entity.Criteria;
 import com.example.SinhVien5T.evidence.entity.Evidence;
+import com.example.SinhVien5T.evidence.entity.EvidenceStatus;
 import com.example.SinhVien5T.campaign.entity.Standard;
 import com.example.SinhVien5T.campaign.repository.CampaignRepository;
-import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
+import com.example.SinhVien5T.evidence.repository.EvidenceRepository;
 import com.example.SinhVien5T.common.exception.ResourceNotFoundException;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,7 @@ public class CampaignService {
                 Evidence evidence = evidenceMap.get(criteria.getId());
 
                 String url = evidence != null ? evidence.getEvidenceUrl() : null;
-                Boolean status = evidence != null ? evidence.getStatus() : null;
+                EvidenceStatus status = evidence != null ? evidence.getStatus() : null;
                 String comment = evidence != null ? evidence.getReviewerComment() : null;
 
                 return CriteriaDTO.builder()
@@ -133,7 +134,7 @@ public class CampaignService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        User user = (User) authentication.getPrincipal();
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
         Campaign campaign = campaignRepository.findCampaignWithDetails(campaignId)
                 .orElseThrow(() -> new RuntimeException("Campaign not found"));
@@ -185,7 +186,7 @@ public class CampaignService {
         Evidence evidence = evidenceMap.get(criteria.getId());
 
         String url = evidence != null ? evidence.getEvidenceUrl() : null;
-        String status = evidence != null ? evidence.getStatus() : null;
+        EvidenceStatus status = evidence != null ? evidence.getStatus() : null;
         String comment = evidence != null ? evidence.getReviewerComment() : null;
 
         return CriteriaDTO.builder()

@@ -3,7 +3,7 @@ package com.example.SinhVien5T.evidence.service;
 import com.example.SinhVien5T.campaign.entity.Criteria;
 import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.campaign.repository.CriteriaRepository;
-import com.example.SinhVien5T.campaign.repository.EvidenceRepository;
+import com.example.SinhVien5T.evidence.repository.EvidenceRepository;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceRequest;
 import com.example.SinhVien5T.evidence.dto.UploadEvidenceResponse;
 import com.example.SinhVien5T.user.entity.CustomUserDetails;
@@ -15,7 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.SinhVien5T.evidence.entity.EvidenceStatus;
 
 @Service
 @RequiredArgsConstructor 
@@ -50,6 +52,11 @@ public class EvidenceService {
             String evidenceUrl = fileStorageService.storeFile(request.getFile());
 
             evidenceExist.setEvidenceUrl(evidenceUrl);
+            evidenceExist.setStatus(EvidenceStatus.PENDING);
+            evidenceExist.setSubmittedAt(LocalDateTime.now());
+            evidenceExist.setSubmissionCount(evidenceExist.getSubmissionCount() != null ? evidenceExist.getSubmissionCount() + 1 : 2);
+            evidenceExist.setReviewer(null);
+            evidenceExist.setReviewedAt(null);
 
             try {
                 evidenceRepository.save(evidenceExist);
@@ -62,7 +69,7 @@ public class EvidenceService {
                     .evidenceId(evidenceExist.getId())
                     .criteriaId(criteriaRef.getId())
                     .evidenceUrl(evidenceUrl)
-                    .status(true)
+                    .status(EvidenceStatus.PENDING)
                     .build();
         } else {
 
@@ -72,8 +79,11 @@ public class EvidenceService {
                     .criteria(criteriaRef)
                     .user(userRef)
                     .evidenceUrl(evidenceUrl)
-                    .status(true)
+                    .status(EvidenceStatus.PENDING)
+                    .submittedAt(LocalDateTime.now())
+                    .submissionCount(1)
                     .reviewerComment(null)
+                    .description("")
                     .build();
 
             Evidence evidenceSave = evidenceRepository.save(evidence);
@@ -83,7 +93,7 @@ public class EvidenceService {
                     .evidenceId(evidenceSave.getId())
                     .criteriaId(criteriaRef.getId())
                     .evidenceUrl(evidenceUrl)
-                    .status(true)
+                    .status(EvidenceStatus.PENDING)
                     .build();
         }
     }

@@ -1,5 +1,6 @@
 package com.example.SinhVien5T.campaign.dto;
 
+import com.example.SinhVien5T.evidence.entity.EvidenceStatus;
 import lombok.*;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class CriteriaDTO {
 
     // Ttin evidence (lấy từ bảng Evidence)
     private String evidenceUrl;
-    private Boolean evidenceStatus;
+    private EvidenceStatus evidenceStatus;
     private String reviewerComment;
 
     private List<CriteriaDTO> subCriteriaList;
