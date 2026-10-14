@@ -60,8 +60,8 @@ public class AuthService {
         }
 
 
-        if(!request.getEmail().toLowerCase().endsWith("@ms.hanu.edu.vn")){
-            throw new InvalidEmailDomainException("Vui lòng sử dụng email nhà trường cấp (@ms.hanu.edu.vn)");
+        if(!request.getEmail().toLowerCase().endsWith("@hanu.edu.vn")){
+            throw new InvalidEmailDomainException("Vui lòng sử dụng email nhà trường cấp ");
         }
 
         User user = existUser.orElseGet(() ->
@@ -96,6 +96,7 @@ public class AuthService {
 
     }
 
+    @Transactional
     public String verifyRegisterToken(@RequestParam String token) {
 
         try {
@@ -109,9 +110,10 @@ public class AuthService {
                 return frontEndUrl + "/login?error=token_expired";
             }
 
-            // Link đc xác minh thành công, save isActive User rồi redirect về trong login
+            // Link đc xác minh thành công, kích hoạt User rồi redirect về trang login
             User user = registerVerifyToken.getUser();
             user.setVerified(true);
+            user.setActive(true);
             userRepository.save(user);
 
             registerVerifyTokenRepository.delete(registerVerifyToken);
@@ -119,7 +121,7 @@ public class AuthService {
             return frontEndUrl + "/login?verified=success";
 
         } catch (Exception e) {
-            // Trường hợp lỗi khác (token rác, không tìm thấy...)
+            e.printStackTrace();
             return frontEndUrl + "/login?error=invalid_token";
         }
     }
@@ -228,11 +230,11 @@ public class AuthService {
     @Transactional
     public void resetPassWord(String token, String newPw) throws MessagingException {
         RegisterVerifyToken resetToken = registerVerifyTokenRepository.findByToken(token)
-                        .orElseThrow(() -> new RuntimeException("Token không hợp lệ"));
+                        .orElseThrow(() -> new InvalidTokenException("Token không hợp lệ"));
 
         if(resetToken.getExpiryDate().isBefore(LocalDateTime.now())){
             registerVerifyTokenRepository.delete(resetToken);
-            throw new RuntimeException("Token không hợp lệ");
+            throw new InvalidTokenException("Token không hợp lệ");
         }
 
        registerVerifyTokenRepository.delete(resetToken);
@@ -245,12 +247,12 @@ public class AuthService {
     public Map<String, Object> refreshAccessToken(String refreshToken){
 
         if(refreshToken == null || refreshToken.isEmpty()) {
-            throw new RuntimeException("Token ko hợp lệ");
+            throw new InvalidTokenException("Token không hợp lệ");
         }
 
         RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(refreshToken)
                 .filter(rt -> rt.getExpiredAt().isAfter(LocalDateTime.now()))
-                .orElseThrow(() -> new RuntimeException("Token ko hợp lệ"));
+                .orElseThrow(() -> new InvalidTokenException("Token không hợp lệ"));
 
         String newAccessToken = jwtService.generateAccessJwt(storedRefreshToken.getUser());
 
