@@ -8,8 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadEvidenceRequest {
 
     @NotNull(message = "Criteria ID không được để trống")
-    Long criteriaId;
+    private Long criteriaId;
 
     @NotNull(message = "File minh chứng không được để trống")
-    MultipartFile file;
+    private MultipartFile file;
+
+    private Long evidenceId;
+
+    private String description;
 }

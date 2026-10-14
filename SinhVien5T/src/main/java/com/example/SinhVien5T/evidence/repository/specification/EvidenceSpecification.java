@@ -22,12 +22,12 @@ public class EvidenceSpecification {
 
             if (Long.class != query.getResultType()) {
                 root.fetch("user", JoinType.INNER);
-                root.fetch("criteria", JoinType.INNER).fetch("standard", JoinType.INNER);
+                root.fetch("criteria", JoinType.INNER).fetch("standard", JoinType.LEFT);
             }
 
             Join<Evidence, User> userJoin = (Join<Evidence, User>) root.<Evidence, User>join("user", JoinType.INNER);
             Join<Evidence, Criteria> criteriaJoin = (Join<Evidence, Criteria>) root.<Evidence, Criteria>join("criteria", JoinType.INNER);
-            Join<Criteria, Standard> standardJoin = criteriaJoin.join("standard", JoinType.INNER);
+            Join<Criteria, Standard> standardJoin = criteriaJoin.join("standard", JoinType.LEFT);
 
             if (request.getStatus() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), request.getStatus()));

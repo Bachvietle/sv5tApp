@@ -5,14 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 
 @Builder
+@Data
 public class UploadEvidenceResponse {
 
-    Long evidenceId;
+    private Long evidenceId;
 
-    Long criteriaId;
+    private Long criteriaId;
 
-    String evidenceUrl;
+    private String evidenceUrl;
 
-    EvidenceStatus status;
+    private EvidenceStatus status;
 
+    private String description;
 }

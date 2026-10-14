@@ -1,13 +1,16 @@
 package com.example.SinhVien5T.evidence.service;
 
-import com.example.SinhVien5T.evidence.repository.EvidenceRepository;
 import com.example.SinhVien5T.common.dto.response.PageResponse;
+import com.example.SinhVien5T.common.exception.ResourceNotFoundException;
 import com.example.SinhVien5T.evidence.dto.request.EvidenceFilterRequest;
 import com.example.SinhVien5T.evidence.dto.request.EvidenceReviewRequest;
 import com.example.SinhVien5T.evidence.dto.response.EvidenceAdminDTO;
 import com.example.SinhVien5T.evidence.entity.Evidence;
 import com.example.SinhVien5T.evidence.entity.EvidenceStatus;
+import com.example.SinhVien5T.evidence.exception.EvidenceNotFoundException;
+import com.example.SinhVien5T.evidence.exception.InvalidEvidenceStatusException;
 import com.example.SinhVien5T.evidence.mapper.EvidenceMapper;
+import com.example.SinhVien5T.evidence.repository.EvidenceRepository;
 import com.example.SinhVien5T.evidence.repository.specification.EvidenceSpecification;
 import com.example.SinhVien5T.user.entity.User;
 import com.example.SinhVien5T.user.repository.UserRepository;
@@ -55,22 +58,19 @@ public class EvidenceManagementService {
     @Transactional
     public EvidenceAdminDTO reviewEvidence(Long evidenceId, EvidenceReviewRequest request, Long reviewerId) {
         Evidence evidence = evidenceRepository.findById(evidenceId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy minh chứng"));
+                .orElseThrow(() -> new EvidenceNotFoundException("Không tìm thấy minh chứng với ID: " + evidenceId));
 
         User reviewer = userRepository.findById(reviewerId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người duyệt"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người duyệt"));
 
         if (request.getStatus() == EvidenceStatus.PENDING) {
-            throw new RuntimeException("Không thể set trạng thái thành PENDING");
-        }
-
-        if ((request.getStatus() == EvidenceStatus.REJECTED || request.getStatus() == EvidenceStatus.NEEDS_MODIFICATION)
-                && (request.getReviewerComment() == null || request.getReviewerComment().trim().isEmpty())) {
-            throw new RuntimeException("Vui lòng nhập lý do/ghi chú");
+            throw new InvalidEvidenceStatusException("Không thể set trạng thái thành PENDING khi thẩm định");
         }
 
         evidence.setStatus(request.getStatus());
-        evidence.setReviewerComment(request.getReviewerComment());
+        String comment = (request.getReviewerComment() != null && !request.getReviewerComment().trim().isEmpty())
+                ? request.getReviewerComment().trim() : null;
+        evidence.setReviewerComment(comment);
         evidence.setReviewer(reviewer);
         evidence.setReviewedAt(LocalDateTime.now());
 

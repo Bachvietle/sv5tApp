@@ -22,5 +22,7 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long>, JpaSp
             "WHERE e.user.id = :userId AND ca.id = :campaignId ")
     List<Evidence> findByUserAndCampaign(@Param("userId") Long userId, @Param("campaignId") Long campaignId);
 
-    Evidence findByUserAndCriteria(User user, Criteria criteria);
+    List<Evidence> findByUserAndCriteria(User user, Criteria criteria);
+
+    List<Evidence> findByUserIdAndCriteriaId(Long userId, Long criteriaId);
 }

@@ -69,15 +69,21 @@ public class LocalFileStorageServiceImpl implements FileStorageService{
     }
 
     @Override
-    public void deleteFile(String fileUrl) throws IOException {
+    public void deleteFile(String fileUrl) {
+        if (fileUrl == null || fileUrl.trim().isEmpty()) {
+            return;
+        }
 
-        String originFileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+        try {
+            int lastSlashIndex = fileUrl.lastIndexOf("/");
+            String originFileName = lastSlashIndex >= 0 ? fileUrl.substring(lastSlashIndex + 1) : fileUrl;
 
-        Path path = Path.of(originFileName);
+            Path storageFilePath = Path.of(storageUrl).resolve(originFileName); // (thư mục gốc + tên file)
 
-        Path storageFilePath = Path.of(storageUrl).resolve(path); // (thư mục gốc + tên file)
-
-        Files.deleteIfExists(storageFilePath);
+            Files.deleteIfExists(storageFilePath);
+        } catch (Exception e) {
+            // Không làm gián đoạn transaction nếu file vật lý bị khóa hoặc không tìm thấy
+        }
     }
 
 }
