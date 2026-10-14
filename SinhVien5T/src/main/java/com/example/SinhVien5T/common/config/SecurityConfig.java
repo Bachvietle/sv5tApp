@@ -36,8 +36,8 @@ public class SecurityConfig {
                         // Thêm các Public endpoint ko cần authen
                         .requestMatchers("/user/auth/**", "/test/**").permitAll()
 
-                        // Phân quyền cho Admin và Mentor quản lý sinh viên
-                        .requestMatchers("/management/students/**", "/management/evidences/**").hasAnyAuthority("role:ADMIN", "role:MENTOR")
+                        // Phân quyền cho Admin và Mentor quản lý (sinh viên, minh chứng, đợt xét tuyển, hồ sơ)
+                        .requestMatchers("/management/**").hasAnyAuthority("role:ADMIN", "role:MENTOR")
 
                         // Các endpoint phải authen
                         .anyRequest().authenticated()
