@@ -17,8 +17,9 @@ public class UserSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Luôn luôn chỉ lấy tài khoản sinh viên (Role.USER)
+            // 1. Luôn luôn chỉ lấy tài khoản sinh viên (Role.USER) đã xác thực email thành công (isVerified = true)
             predicates.add(cb.equal(root.get("role"), Role.USER));
+            predicates.add(cb.isTrue(root.get("isVerified")));
 
             if (filter == null) {
                 return cb.and(predicates.toArray(new Predicate[0]));

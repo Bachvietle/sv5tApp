@@ -34,7 +34,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_name", nullable = false, unique = true, length = 100)
+    @Column(name = "user_name", unique = true, length = 100)
     private String userName;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -54,11 +54,11 @@ public class User {
 
     @Column(name = "is_verified")
     @Builder.Default
-    private boolean isVerified = true;
+    private boolean isVerified = false;
 
     @Column(name = "is_active")
     @Builder.Default
-    private boolean isActive = true;
+    private boolean isActive = false;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
@@ -94,7 +94,7 @@ public class User {
     @Column (name = "iden_number", length = 20)
     private String idenNumber;
 
-    @Column (name = "university", length = 20)
+    @Column (name = "university", length = 50)
     @Builder.Default
     private String university = "Đại học Hà Nội";
 

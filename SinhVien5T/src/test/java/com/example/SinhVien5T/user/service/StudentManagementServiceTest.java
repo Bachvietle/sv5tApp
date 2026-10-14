@@ -50,11 +50,13 @@ class StudentManagementServiceTest {
         studentUser.setId(1L);
         studentUser.setRole(Role.USER);
         studentUser.setActive(true);
+        studentUser.setVerified(true);
 
         adminUser = new User();
         adminUser.setId(2L);
         adminUser.setRole(Role.ADMIN);
         adminUser.setActive(true);
+        adminUser.setVerified(true);
     }
 
     @Test
@@ -111,6 +113,21 @@ class StudentManagementServiceTest {
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> studentManagementService.getStudentDetail(2L));
         verify(userRepository, times(1)).findById(2L);
+    }
+
+    @Test
+    void getStudentDetail_WhenUserNotVerified_ShouldThrowException() {
+        // Arrange
+        User unverifiedUser = new User();
+        unverifiedUser.setId(3L);
+        unverifiedUser.setRole(Role.USER);
+        unverifiedUser.setVerified(false);
+
+        when(userRepository.findById(3L)).thenReturn(Optional.of(unverifiedUser));
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> studentManagementService.getStudentDetail(3L));
+        verify(userRepository, times(1)).findById(3L);
     }
 
     @Test

@@ -18,12 +18,18 @@ public interface UserMapper {
 
     @Mapping(target = "fullName", expression = "java(buildFullName(user))")
     @Mapping(target = "isProfileCompleted", source = "profileCompleted")
+    @Mapping(target = "isActive", source = "active")
     StudentSummaryResponse toStudentSummaryResponse(User user);
 
     @Mapping(target = "fullName", expression = "java(buildFullName(user))")
     @Mapping(target = "isProfileCompleted", source = "profileCompleted")
+    @Mapping(target = "isVerified", source = "verified")
+    @Mapping(target = "isActive", source = "active")
     StudentDetailResponse toStudentDetailResponse(User user);
 
+
+    @Mapping(target = "isVerified", source = "verified")
+    @Mapping(target = "isActive", source = "active")
     UserProfileResponse toUserProfileResponse(User user);
 
     default String buildFullName(User user) {

@@ -75,8 +75,8 @@ public class StudentManagementService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sinh viên với ID: " + id));
 
-        if (user.getRole() != Role.USER) {
-            throw new ResourceNotFoundException("Người dùng không phải là sinh viên");
+        if (user.getRole() != Role.USER || !user.isVerified()) {
+            throw new ResourceNotFoundException("Người dùng không phải là sinh viên hoặc chưa xác thực tài khoản");
         }
 
         return userMapper.toStudentDetailResponse(user);
