@@ -41,8 +41,9 @@ public class Campaign {
     @Column(name = "end_date")
     private LocalDate end_date;
 
-    @Column(length = 50)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
+    private CampaignStatus status;
 
     @CreationTimestamp
     @Column(name = "create_at", updatable = false)

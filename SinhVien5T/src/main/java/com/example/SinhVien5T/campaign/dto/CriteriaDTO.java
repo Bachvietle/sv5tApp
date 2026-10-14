@@ -1,8 +1,10 @@
 package com.example.SinhVien5T.campaign.dto;
 
+import com.example.SinhVien5T.evidence.dto.response.EvidenceItemDTO;
 import com.example.SinhVien5T.evidence.entity.EvidenceStatus;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -32,6 +34,8 @@ public class CriteriaDTO {
     private EvidenceStatus evidenceStatus;
     private String reviewerComment;
 
-    private List<CriteriaDTO> subCriteriaList;
+    @Builder.Default
+    private List<EvidenceItemDTO> evidences = new ArrayList<>();
 
+    private List<CriteriaDTO> subCriteriaList;
 }
